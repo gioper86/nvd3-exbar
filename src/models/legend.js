@@ -7,7 +7,11 @@ nv.models.legend = function() {
   var margin = {top: 5, right: 0, bottom: 5, left: 0}
     , width = 400
     , height = 20
-    , getKey = function(d) { return d.key }
+    , getKey = function(d) { 
+      if (typeof d.title != "undefined")
+        return d.title;
+      return d.key;
+    }
     , color = nv.utils.defaultColor()
     , align = true
     , dispatch = d3.dispatch('legendClick', 'legendDblclick', 'legendMouseover', 'legendMouseout')
@@ -50,6 +54,9 @@ nv.models.legend = function() {
             dispatch.legendDblclick(d,i);
           });
       seriesEnter.append('circle')
+          .attr('class', function(d,i) {
+            return (d.elClass || '');
+          })
           .style('stroke-width', 2)
           .attr('r', 5);
       seriesEnter.append('text')

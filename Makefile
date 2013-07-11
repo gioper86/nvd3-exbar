@@ -34,16 +34,26 @@ JS_FILES = \
 	src/models/sparklinePlus.js \
 	src/models/stackedArea.js \
 	src/models/stackedAreaChart.js \
+	src/models/exBar.js \
+	src/models/exBarChart.js \
 	src/outro.js
 
 JS_COMPILER = \
 	uglifyjs
 
-all: nv.d3.js nv.d3.min.js
+all: nv.d3.js nv.d3.min.js nv.ex.d3.js nv.ex.d3.min.js
+
 nv.d3.js: $(JS_FILES)
 nv.d3.min.js: $(JS_FILES)
 
+nv.ex.d3.js: $(JS_FILES)
+nv.ex.d3.min.js: $(JS_FILES)
+
 nv.d3.js: Makefile
+	rm -f $@
+	cat $(filter %.js,$^) >> $@
+
+nv.ex.d3.js: Makefile
 	rm -f $@
 	cat $(filter %.js,$^) >> $@
 
@@ -52,6 +62,6 @@ nv.d3.js: Makefile
 	cat $(filter %.js,$^) | $(JS_COMPILER) >> $@
 
 clean:
-	rm -rf nv.d3.js nv.d3.min.js
+	rm -rf nv.ex.d3.js nv.ex.d3.min.js
 
 

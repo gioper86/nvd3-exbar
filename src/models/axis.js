@@ -123,13 +123,14 @@ nv.models.axis = function() {
             var xLabelMargin = (sin ? sin*maxTextWidth : maxTextWidth)+30;
             //Rotate all xTicks
             xTicks
+              .style("text-anchor", "")
               .attr('transform', function(d,i,j) { return 'rotate(' + rotateLabels + ' 0,0)' })
               .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
-              .attr('text-anchor', 'middle')
+              .attr('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
               .attr('y', xLabelMargin)
               .attr('x', w/2);
           if (showMaxMin) {

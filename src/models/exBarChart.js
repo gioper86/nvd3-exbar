@@ -580,7 +580,7 @@ nv.models.exBarChart = function(options) {
 
         // Setup Axes
 
-        xAxis.showMaxMin(false/*timeserie*/);
+        xAxis.showMaxMin(timeserie);
         xAxis
           .scale(x)
           .tickSize(-availableHeight1, 0);

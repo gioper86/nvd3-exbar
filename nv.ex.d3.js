@@ -3235,6 +3235,7 @@ nv.models.historicalBarChart = function() {
     , legend = nv.models.legend()
     ;
 
+
   var margin = {top: 30, right: 90, bottom: 50, left: 90}
     , color = nv.utils.defaultColor()
     , width = null
@@ -3402,6 +3403,7 @@ nv.models.historicalBarChart = function() {
             .attr("transform", "translate(" + availableWidth + ",0)");
       }
 
+
       //------------------------------------------------------------
       // Main Chart Component(s)
 
@@ -3481,7 +3483,6 @@ nv.models.historicalBarChart = function() {
           dispatch.stateChange(state);
           chart.update();
       });
-
 
 /*
       legend.dispatch.on('legendMouseover', function(d, i) {
@@ -14675,7 +14676,7 @@ nv.models.exBarChart = function(options) {
 
         // Setup Axes
 
-        xAxis.showMaxMin(false/*timeserie*/);
+        xAxis.showMaxMin(timeserie);
         xAxis
           .scale(x)
           .tickSize(-availableHeight1, 0);

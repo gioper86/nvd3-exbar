@@ -46,6 +46,8 @@ nv.models.pieChart = function() {
 
   function chart(selection) {
     selection.each(function(data) {
+      var odata = data;
+      data = data.series;
       var container = d3.select(this),
           that = this;
 

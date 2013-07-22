@@ -130,6 +130,7 @@ nv.models.exBarChart = function(options) {
 
   function chart(selection) {
     selection.each(function(data) {
+      var seriesData = data ? data.series : [];
       //
       chart.update = function(updateDelay) {
         window.setTimeout(function() {
@@ -161,7 +162,7 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+      if (!seriesData || !seriesData.length || !seriesData.filter(function(d) { return d.values.length }).length) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -185,8 +186,8 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Setup Scales
 
-      var dataForYAxis = data.filter(function(d) { return !d.disabled && (d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
-      var dataForY2Axis = data.filter(function(d) { return !d.disabled && d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
+      var dataForYAxis = seriesData.filter(function(d) { return !d.disabled && (d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
+      var dataForY2Axis = seriesData.filter(function(d) { return !d.disabled && d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
 
       x = bars.xScale();
       y1 = bars.yScale();
@@ -269,7 +270,7 @@ nv.models.exBarChart = function(options) {
 
       if (showLegend) {
         legend.width(availableWidth - controlWidth());
-        var legendData = data.filter(function(d) { return !d.hidden });
+        var legendData = seriesData.filter(function(d) { return !d.hidden });
  
         g.select('.nv-legendWrap')
             .datum(legendData.map(function(series) {
@@ -467,8 +468,8 @@ nv.models.exBarChart = function(options) {
       legend.dispatch.on('legendClick', function(d,i) { 
         d.disabled = !d.disabled;
 
-        if (!data.filter(function(d) { return !d.disabled }).length) {
-          data.map(function(d) {
+        if (!seriesData.filter(function(d) { return !d.disabled }).length) {
+          seriesData.map(function(d) {
             d.disabled = false;
             wrap.selectAll('.nv-series').classed('disabled', false);
             return d;
@@ -511,7 +512,7 @@ nv.models.exBarChart = function(options) {
       dispatch.on('changeState', function(e) {
 
         if (typeof e.disabled !== 'undefined') {
-          data.forEach(function(series,i) {
+          seriesData.forEach(function(series,i) {
             series.disabled = e.disabled[i];
           });
 
@@ -707,6 +708,7 @@ nv.models.exBarChart = function(options) {
                     elClass: d.elClass,
                     type: d.type,
                     color: d.color,
+                    formatOptions: d.formatOptions,
                     values: d.values.filter(function(d,i) {
                       return bars.x()(d,i) >= extent[0] && bars.x()(d,i) <= extent[1];
                     })
@@ -724,6 +726,7 @@ nv.models.exBarChart = function(options) {
                     elClass: d.elClass,
                     type: d.type,
                     color: d.color,
+                    formatOptions: d.formatOptions,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })

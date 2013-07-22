@@ -143,6 +143,8 @@ function drawChart(selector, gdata, options) {
 	chart.stacked(options.stacked);
 	chart.delayed(options.delayed);
 	chart.interval(options.interval);
+	chart.showStacked(options.showStacked);
+	chart.showDelayed(options.showDelayed);
 	//chart.xAxis.ticks(3);
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
@@ -219,7 +221,7 @@ function drawChart(selector, gdata, options) {
 	
 	// 
 	d3.select(selector)
-		.datum(gdata.series)
+		.datum(gdata)
 		.transition().duration(500).call(chart);
 	//
 	nv.utils.windowResize(chart.update);
@@ -248,16 +250,18 @@ $(document).ready(function() {
 		context: true,
 		timeserie: true,
 		sparse: false,
-		stacked: true,
+		stacked: false,
 		delayed: true,
 		israndom: false,
 		items: 4,
+		showStacked: true,
+		showDelayed: true,
 		numberOfBarSeries: 2,
 		numberOfMarkSeries: 1,
-		numberOfLineSeries: 1,
-		numberOfBarSeries2: 4,
-		numberOfMarkSeries2: 2,
-		numberOfLineSeries2: 2,
+		numberOfLineSeries: 0,
+		numberOfBarSeries2: 0,
+		numberOfMarkSeries2: 0,
+		numberOfLineSeries2: 0,
 		withContext: true,
 		incomplete: false,
 		interval: d3.time.day

@@ -12385,12 +12385,14 @@ nv.models.stackedArea = function() {
       path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
+            /*
             dispatch.areaMouseover({
               point: d,
               series: d.key,
               pos: [d3.event.pageX, d3.event.pageY],
               seriesIndex: i
             });
+            */
           })
           .on('mouseout', function(d,i) {
             d3.select(this).classed('hover', false);
@@ -13056,7 +13058,7 @@ nv.models.stackedAreaChart = function() {
   return chart;
 }
 
-nv.models.exBar = function(timeserie) {
+nv.models.exBar = function(options) {
 
   //============================================================
   // Public Variables with Default Settings
@@ -13065,6 +13067,7 @@ nv.models.exBar = function(timeserie) {
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 960
     , height = 500
+    , timeserie = options.timeserie
     , x = timeserie ? d3.time.scale() : d3.scale.ordinal()
     , y = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -13082,22 +13085,24 @@ nv.models.exBar = function(timeserie) {
     , drawTime = 50000
     , xDomain
     , yDomain
-    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout')
+    , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
     , interval = d3.time.day
     , dataMappedByX = {}
     ;
 
-  var scatter = nv.models.scatter()
-    , interpolate = "linear" // controls the line interpolation
-    , defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
-    , isArea = function(d) { return d.type == 'area' } // decides if a line is an area or just a line
+var
+  defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
+  , isArea = function(d) { return d.area } // decides if a line is an area or just a line
+  , clipEdge = false // if true, masks lines within x and y scale  
+  ;
+
+  // Area
+  var order = 'default'
+    , offset = 'zero'
+    , interpolate = 'linear'  // controls the line interpolation
     ;
-    
-  scatter
-    .size(16) // default size
-    .sizeDomain([16,256]) //set to speed up calculation, needs to be unset if there is a custom size accessor
-    ;
-  
+
+
   //============================================================
 
 
@@ -13121,7 +13126,159 @@ nv.models.exBar = function(timeserie) {
       return x(xval)
     }
   }
-  function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars) {
+
+  function chartAreas(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataAreas, delayed) {
+      //console.log('dataAreas', dataAreas);
+      //
+      var odata = data;
+      var odataAreas = dataAreas;
+      //
+      if (dataAreas.length > 0) {
+        dataAreas = d3.layout.stack()
+               .order(order)
+               .offset(offset)
+               .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+               .x(getX)
+               .y(/*function(d) { return d.stackedY }*/getY)
+               .out(function(d, y0, y) {
+                  d.display = {
+                    //x: getXPos(getX(d, i), bandWidth),
+                    y: y,
+                   y0: y0
+                  };
+                })
+              (dataAreas);
+      }
+      //console.log('dataAreas2', dataAreas);
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-stackedarea').data([dataAreas]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
+      var defsEnter = wrapEnter.append('defs');
+      var gEnter = wrapEnter.append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-areaWrap');
+
+      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      //------------------------------------------------------------
+
+      defsEnter.append('clipPath')
+          .attr('id', 'nv-edge-clip-' + id)
+        .append('rect');
+
+      wrap.select('#nv-edge-clip-' + id + ' rect')
+          .attr('width', availableWidth)
+          .attr('height', availableHeight);
+
+      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+
+      var area = d3.svg.area()
+          .x(function(d,i)  { return getXPos(getX(d,i), bandWidth) + (.5 * bandWidth) })
+          .y0(function(d) { return y(d.display.y0) })
+          .y1(function(d) { return y(d.display.y + d.display.y0) })
+          .interpolate(interpolate);
+
+      var zeroArea = d3.svg.area()
+          .x(function(d,i)  { return x(getX(d,i)) })
+          .y0(function(d) { return y(d.display.y0) })
+          .y1(function(d) { return y(d.display.y0) });
+
+
+      var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
+          .data(function(d) { return d });
+          //.data(function(d) { return d }, function(d) { return d.key });
+      path.enter()
+        .append('path').attr('class', function(d,i) { 
+          return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        })
+        .style('stroke-opacity', 1)
+        .style('fill-opacity', 1)
+          .on('mouseover', function(d,i,j) {
+            d3.select(this).classed('hover', true);
+            dispatch.areaMouseover({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+            //
+            var xvalue = x.invert(d3.event.pageX);
+            console.log('xvalue', xvalue);
+            dispatch.elementMouseover({
+              isFromArea: true,
+              pos: [d3.event.pageX, d3.event.pageY],
+              series: d,
+              seriesIndex: i,
+              data: data,
+              dataMappedByX: dataMappedByX,
+
+              point: xvalue,
+              value: dataMappedByX[xvalue],
+              //pos: getPosBars(d, i, j),
+              //pointIndex: i,
+              e: d3.event
+            })
+          })
+          .on('mouseout', function(d,i,j) {
+            d3.select(this).classed('hover', false);
+            dispatch.areaMouseout({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+            dispatch.elementMouseout({
+              value: getY(d, i),
+              point: d,
+              data: data,
+              dataMappedByX: dataMappedByX,
+              series: data[d.series],
+              pointIndex: i,
+              seriesIndex: d.series,
+              e: d3.event
+            });
+          })
+          .on('click', function(d,i) {
+            d3.select(this).classed('hover', false);
+            dispatch.areaClick({
+              point: d,
+              series: d.key,
+              pos: [d3.event.pageX, d3.event.pageY],
+              seriesIndex: i
+            });
+          })
+      //d3.transition(path.exit())
+      path.exit()
+        .attr('d', function(d,i) { 
+          return zeroArea(d.values,i) 
+        })
+        .remove();
+      path
+        .style('fill', function(d,i){ return d.color || color(d, i) })
+        .style('stroke', function(d,i){ return d.color || color(d, i) });
+      //d3.transition(path)
+      path
+        .attr('d', function(d,i,j) {
+          //console.log('attr-d', d, i, j);
+          return area(d.values,i)
+          /*
+          return area()
+            .x(function(d,i) { return getXPos(getX(d, i), bandWidth); })
+            .y0(function(d,i) { return d.y0; })
+            .y1(function(d,i) { return d.y; }); 
+          */
+        })
+
+
+      //============================================================
+
+  }
+
+  function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed) {
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -13157,9 +13314,9 @@ nv.models.exBar = function(timeserie) {
       if (delayed) {
         var delayPerBar = delay;
         var delayPerItem = 0;
-        //if (typeof dataBars[0] != "undefined") {
+        if (typeof dataBars[0] != "undefined") {
           delayPerItem = delayPerBar / dataBars[0].values.length
-        //}
+        }
         groups.exit()
           .selectAll('rect.nv-bar')
           .transition()
@@ -13418,7 +13575,7 @@ nv.models.exBar = function(timeserie) {
       }
   }
 
-  function chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks) {
+  function chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks, delayed) {
     //console.log('chartMarks', data, dataMarks);
     //------------------------------------------------------------
 
@@ -13647,7 +13804,7 @@ nv.models.exBar = function(timeserie) {
       }
   }
 
-  function chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines) {
+  function chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines, delayed) {
     //console.log('chartMarks', data, dataMarks);
     //------------------------------------------------------------
 
@@ -13661,35 +13818,8 @@ nv.models.exBar = function(timeserie) {
     var g = wrap.select('g')
 
     gEnter.append('g').attr('class', 'nv-groups');
-    gEnter.append('g').attr('class', 'nv-scatterWrap');
 
     wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-    //------------------------------------------------------------
-    /*
-    scatter
-      .width(availableWidth)
-      .height(availableHeight)
-
-    var scatterWrap = wrap.select('.nv-scatterWrap');
-        //.datum(data); // Data automatically trickles down from the wrap
-
-    d3.transition(scatterWrap).call(scatter);
-
-    defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + scatter.id())
-      .append('rect');
-
-    wrap.select('#nv-edge-clip-' + scatter.id() + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
-
-    g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
-    scatterWrap
-        .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + scatter.id() + ')' : '');
-    */
-
-
 
     var groups = wrap.select('.nv-groups').selectAll('.nv-group')
         .data(function(d) { return d }, function(d) { return d.key });
@@ -13701,7 +13831,9 @@ nv.models.exBar = function(timeserie) {
         .style('fill-opacity', 1e-6)
         .remove();
     groups
-        .attr('class', function(d,i) { return 'nv-group nv-series-' + i })
+        .attr('class', function(d,i) {
+          return 'nv-group nv-series-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        })
         .classed('hover', function(d) { return d.hover })
         .style('fill', function(d,i){ return color(d, i) })
         .style('stroke', function(d,i){ return color(d, i)});
@@ -13936,15 +14068,27 @@ nv.models.exBar = function(timeserie) {
           maxElements = Math.max(seriesData[ei].length, maxElements);
       }
       */
-      
+
       // draw bars
-      chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars);
+      if (timeserie && options.forceArea(data)) {
+        chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
+        chartAreas(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed);
+      } else {
+        chartAreas(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
+        chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed);
+      }
 
       // draw marks
-      chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks);
+      if (timeserie && options.forceLine(data)) {
+        chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
+        chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks, delayed);
+      } else {
+        chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
+        chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks, delayed);
+      }
 
       // draw lines
-      chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines);
+      //chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines);
 
       //store old scales for use in transitions on update
       x0 = x.copy();
@@ -14110,8 +14254,8 @@ nv.models.exBarChart = function(options) {
     , withContext = timeserie ? (typeof options.withContext == "undefined" ? true : options.withContext) : false
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
-    , bars = nv.models.exBar(timeserie)
-    , bars2 = withContext ? nv.models.exBar(timeserie) : undefined
+    , bars = nv.models.exBar(options)
+    , bars2 = withContext ? nv.models.exBar(options) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
@@ -14129,9 +14273,9 @@ nv.models.exBarChart = function(options) {
     , rotateLabels = 0
     , interval = d3.time.day
     , controls = nv.models.legend()
-    , showControls = true
-    , showDelayed = true
-    , showStacked = true
+    , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
+    , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
+    , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     ;
 
@@ -14207,15 +14351,20 @@ nv.models.exBarChart = function(options) {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    if (extent) {
-        if (timeserie) {
-          // TODO
-          //e.pointIndex += Math.ceil(extent[0]);
-        }
+    //console.log('showTooltip', e, offsetElement);
+    if (e.isFromArea) {
+      return;
+      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+          top = e.pos[1] + ( offsetElement.offsetTop || 0),
+          x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+          y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
+          content = 'tooltip'//tooltip(e.series.key, x, y, e, chart);
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+      return;
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
@@ -14391,6 +14540,9 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Controls
 
+      if (timeserie && options.forceArea(data.series)) {
+        showStacked = false;
+      }
       if (showControls && (showStacked | showDelayed)) {
         var controlsData = [];
         if (showStacked) {

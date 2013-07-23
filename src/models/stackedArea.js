@@ -154,12 +154,14 @@ nv.models.stackedArea = function() {
       path.enter().append('path').attr('class', function(d,i) { return 'nv-area nv-area-' + i })
           .on('mouseover', function(d,i) {
             d3.select(this).classed('hover', true);
+            /*
             dispatch.areaMouseover({
               point: d,
               series: d.key,
               pos: [d3.event.pageX, d3.event.pageY],
               seriesIndex: i
             });
+            */
           })
           .on('mouseout', function(d,i) {
             d3.select(this).classed('hover', false);

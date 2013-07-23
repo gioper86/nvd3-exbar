@@ -247,24 +247,32 @@ function drawChart(selector, gdata, options) {
 
 $(document).ready(function() {
 	var options = {
-		context: true,
+		//context: true,
 		timeserie: true,
 		sparse: false,
-		stacked: false,
+		stacked: true,
 		delayed: true,
 		israndom: false,
 		items: 4,
 		showStacked: true,
 		showDelayed: true,
-		numberOfBarSeries: 2,
+		showControls: false,
+		numberOfAreaSeries: 1,
+		numberOfBarSeries: 1,
 		numberOfMarkSeries: 1,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
-		withContext: true,
+		withContext: false,
 		incomplete: false,
-		interval: d3.time.day
+		interval: d3.time.day,
+		forceArea: function(d) {
+			return true;
+		},
+		forceLine: function(d) {
+			return false;
+		}
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);

@@ -12,8 +12,8 @@ nv.models.exBarChart = function(options) {
     , withContext = timeserie ? (typeof options.withContext == "undefined" ? true : options.withContext) : false
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
-    , bars = nv.models.exBar(timeserie)
-    , bars2 = withContext ? nv.models.exBar(timeserie) : undefined
+    , bars = nv.models.exBar(options)
+    , bars2 = withContext ? nv.models.exBar(options) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
@@ -31,9 +31,9 @@ nv.models.exBarChart = function(options) {
     , rotateLabels = 0
     , interval = d3.time.day
     , controls = nv.models.legend()
-    , showControls = true
-    , showDelayed = true
-    , showStacked = true
+    , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
+    , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
+    , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     ;
 
@@ -109,15 +109,20 @@ nv.models.exBarChart = function(options) {
   //------------------------------------------------------------
 
   var showTooltip = function(e, offsetElement) {
-    if (extent) {
-        if (timeserie) {
-          // TODO
-          //e.pointIndex += Math.ceil(extent[0]);
-        }
+    //console.log('showTooltip', e, offsetElement);
+    if (e.isFromArea) {
+      return;
+      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+          top = e.pos[1] + ( offsetElement.offsetTop || 0),
+          x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+          y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
+          content = 'tooltip'//tooltip(e.series.key, x, y, e, chart);
+      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+      return;
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(lines.x()(e.point, e.pointIndex)),
+        x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
@@ -293,6 +298,9 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Controls
 
+      if (timeserie && options.forceArea(data.series)) {
+        showStacked = false;
+      }
       if (showControls && (showStacked | showDelayed)) {
         var controlsData = [];
         if (showStacked) {

@@ -594,8 +594,8 @@ nv.models.exBarChart = function(options) {
           .scale(x)
           .tickSize(-availableHeight1, 0);
         if (timeserie) {
-          //xAxis.ticks(interval.range, 1);
-          xAxis.ticks(availableWidth / 100)
+          xAxis.ticks(interval.range, 1);
+          //xAxis.ticks(availableWidth / 100)
         } else {
           xAxis.ticks(availableWidth / 100)
         }

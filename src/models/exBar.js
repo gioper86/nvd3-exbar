@@ -118,27 +118,49 @@ var
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
       var area = d3.svg.area()
-          .x(function(d,i)  { return getXPos(getX(d,i), bandWidth) + (.5 * bandWidth) })
+          .x(function(d,i)  { return d.xx; })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y + d.display.y0) })
           .interpolate(interpolate);
 
       var zeroArea = d3.svg.area()
-          .x(function(d,i)  { return x(getX(d,i)) })
+          .x(function(d,i)  { return d.xx })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y0) });
 
+      var prepareData = function(d) {
+        cvalues2 = [];
+        for (var ti=0; ti<d.values.length; ti++) {
+          var tv = d.values[ti];
+          tv.xx = getXPos(getX(tv,ti), bandWidth);
+          cvalues2.push(tv);
+          var tv2 = {};
+          $.extend(tv2, tv);
+          tv2.xx += bandWidth;
+          cvalues2.push(tv2);
+        }
+        return cvalues2;
+      }
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
           //.data(function(d) { return d }, function(d) { return d.key });
+      var xvalue = -1;
+      var mouseLocationChanged = function(ev) {
+        var nxvalue = interval.floor(x.invert(ev.pageX/*+margin.left*/));
+        if (nxvalue - xvalue != 0) {
+          xvalue = nxvalue;
+          console.log('x.domain', x.domain());
+          console.log('xvalue', xvalue);
+        }
+      }
       path.enter()
         .append('path').attr('class', function(d,i) { 
           return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
         })
         .style('stroke-opacity', 1)
         .style('fill-opacity', 1)
-          .on('mouseover', function(d,i,j) {
+          .on('mousemove', function(d,i,j) {
             d3.select(this).classed('hover', true);
             dispatch.areaMouseover({
               point: d,
@@ -147,8 +169,7 @@ var
               seriesIndex: i
             });
             //
-            var xvalue = x.invert(d3.event.pageX);
-            console.log('xvalue', xvalue);
+            mouseLocationChanged(d3.event);
             dispatch.elementMouseover({
               isFromArea: true,
               pos: [d3.event.pageX, d3.event.pageY],
@@ -203,15 +224,9 @@ var
         .style('stroke', function(d,i){ return d.color || color(d, i) });
       //d3.transition(path)
       path
-        .attr('d', function(d,i,j) {
-          //console.log('attr-d', d, i, j);
-          return area(d.values,i)
-          /*
-          return area()
-            .x(function(d,i) { return getXPos(getX(d, i), bandWidth); })
-            .y0(function(d,i) { return d.y0; })
-            .y1(function(d,i) { return d.y; }); 
-          */
+        .attr('d', function(d) {
+          var cvalues2 = prepareData(d);
+          return area(cvalues2);
         })
 
 
@@ -783,79 +798,38 @@ var
         .style('fill-opacity', .5);
 
 
-
-    var areaPaths = groups.selectAll('path.nv-area')
-        .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
-    areaPaths.enter().append('path')
-        .attr('class', 'nv-area')
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x0(getX(d,i)) })
-              .y0(function(d,i) { return y0(getY(d,i)) })
-              .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-    d3.transition(groups.exit().selectAll('path.nv-area'))
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x(getX(d,i)) })
-              .y0(function(d,i) { return y(getY(d,i)) })
-              .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-    d3.transition(areaPaths)
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x(getX(d,i)) })
-              .y0(function(d,i) { return y(getY(d,i)) })
-              .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-
-
+    var prepareData = function(values) {
+      cvalues2 = [];
+      for (var ti=0; ti<values.length; ti++) {
+        var tv = values[ti];
+        tv.xx = function(d, i) {
+          return x(getX(d, i));
+        };
+        cvalues2.push(tv);
+        var tv2 = {};
+        $.extend(tv2, tv);
+        tv2.xx = function(d, i) {
+          return x(getX(d, i)) + bandWidth;
+        };
+        cvalues2.push(tv2);
+      }
+      return cvalues2;
+    }
 
     var linePaths = groups.selectAll('path.nv-line')
-        .data(function(d) { return [d.values] });
+      .data(function(d) { return [prepareData(d.values)] });
     linePaths.enter().append('path')
-        .attr('class', 'nv-line')
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x0(getX(d,i)) })
-            .y(function(d,i) { return y0(getY(d,i)) })
-        );
+      .attr('class', 'nv-line');
     d3.transition(groups.exit().selectAll('path.nv-line'))
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-        );
+      .remove();
     d3.transition(linePaths)
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-        );
-
-
-
-    //store old scales for use in transitions on update
-    x0 = x.copy();
-    y0 = y.copy();
+      .attr('d',
+        d3.svg.line()
+          .interpolate(interpolate)
+          .defined(defined)
+          .x(function(d,i) { return d.xx(d, i) })
+          .y(function(d,i) { return y(getY(d,i)) })
+      );
   }
 
   function chart(selection) {

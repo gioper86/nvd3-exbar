@@ -149,7 +149,7 @@ function drawChart(selector, gdata, options) {
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
 	//chart.forceY([0, 2]);
-	chart.margin({bottom: 50, left: 100});
+	chart.margin(options.margin);
 	//
 	chart.xAxis.rotateLabels(-30);
 	//
@@ -248,12 +248,13 @@ function drawChart(selector, gdata, options) {
 $(document).ready(function() {
 	var options = {
 		//context: true,
+		margin: {bottom: 50, left: 100},
 		timeserie: true,
 		sparse: false,
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 4,
+		items: 3,
 		showStacked: true,
 		showDelayed: true,
 		showControls: false,
@@ -271,7 +272,7 @@ $(document).ready(function() {
 			return true;
 		},
 		forceLine: function(d) {
-			return false;
+			return true;
 		}
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);

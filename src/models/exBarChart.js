@@ -158,7 +158,7 @@ nv.models.exBarChart = function(options) {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2,
@@ -594,8 +594,8 @@ nv.models.exBarChart = function(options) {
           .scale(x)
           .tickSize(-availableHeight1, 0);
         if (timeserie) {
-          xAxis.ticks(interval.range, 1);
-          //xAxis.ticks(availableWidth / 100)
+          //xAxis.ticks(interval.range, 1);
+          xAxis.ticks(availableWidth / 100)
         } else {
           xAxis.ticks(availableWidth / 100)
         }
@@ -880,6 +880,11 @@ nv.models.exBarChart = function(options) {
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    //
+    bars.mainMargin(margin);
+    if (typeof bars2 !== "undefined") {
+      bars.mainMargin(margin);
+    }
     return chart;
   };
 

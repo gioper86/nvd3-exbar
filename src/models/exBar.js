@@ -6,6 +6,7 @@ nv.models.exBar = function(options) {
   //------------------------------------------------------------
 
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , mainMargin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 960
     , height = 500
     , timeserie = options.timeserie
@@ -146,12 +147,17 @@ var
           .data(function(d) { return d });
           //.data(function(d) { return d }, function(d) { return d.key });
       var xvalue = -1;
-      var mouseLocationChanged = function(ev) {
-        var nxvalue = interval.floor(x.invert(ev.pageX/*+margin.left*/));
+      var mouseLocationChanged = function() {
+        var el = $(g).closest('svg')[0];
+        //console.log('$this', );
+        var pos = d3.mouse(el);
+        //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
+        var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+        //var nxvalue = (x.invert(ev.pageX));
         if (nxvalue - xvalue != 0) {
           xvalue = nxvalue;
-          console.log('x.domain', x.domain());
-          console.log('xvalue', xvalue);
+          console.log('x.domain, xvalue', x.domain(), xvalue);
+          //console.log('pageX, margin.left', d3.event.pageX, margin.left);
         }
       }
       path.enter()
@@ -803,13 +809,13 @@ var
       for (var ti=0; ti<values.length; ti++) {
         var tv = values[ti];
         tv.xx = function(d, i) {
-          return x(getX(d, i));
+          return getXPos(getX(d, i), bandWidth); // x(getX(d, i)); 
         };
         cvalues2.push(tv);
         var tv2 = {};
         $.extend(tv2, tv);
         tv2.xx = function(d, i) {
-          return x(getX(d, i)) + bandWidth;
+          return getXPos(getX(d, i), bandWidth) + bandWidth;
         };
         cvalues2.push(tv2);
       }
@@ -1039,6 +1045,15 @@ var
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.mainMargin = function(_) {
+    if (!arguments.length) return mainMargin;
+    mainMargin.top    = typeof _.top    != 'undefined' ? _.top    : mainMargin.top;
+    mainMargin.right  = typeof _.right  != 'undefined' ? _.right  : mainMargin.right;
+    mainMargin.bottom = typeof _.bottom != 'undefined' ? _.bottom : mainMargin.bottom;
+    mainMargin.left   = typeof _.left   != 'undefined' ? _.left   : mainMargin.left;
     return chart;
   };
 

@@ -8,6 +8,7 @@
 <style>
 body {
   overflow-y:scroll;
+  margin: 10px;
 }
 
 text {
@@ -16,7 +17,6 @@ text {
 
 #chart1 {
   height: 500px;
-  margin: 10px;
   min-width: 200px;
   min-height: 200px;
 /*
@@ -220,9 +220,16 @@ function drawChart(selector, gdata, options) {
 	//
 	
 	// 
+	var t1 = new Date();
 	d3.select(selector)
 		.datum(gdata)
-		.transition().duration(500).call(chart);
+		.transition().duration(500)
+		.call(chart)
+		.each('end', function(d) {
+			var t2 = new Date();
+			console.log('rendering: ' + (t2 - t1));
+		})
+		;
 	//
 	nv.utils.windowResize(chart.update);
 	//
@@ -254,18 +261,18 @@ $(document).ready(function() {
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 3,
+		items: 2000,
 		showStacked: true,
 		showDelayed: true,
 		showControls: false,
-		numberOfAreaSeries: 1,
-		numberOfBarSeries: 1,
-		numberOfMarkSeries: 1,
+		numberOfAreaSeries: 0,
+		numberOfBarSeries: 3,
+		numberOfMarkSeries: 2,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
-		withContext: false,
+		withContext: true,
 		incomplete: false,
 		interval: d3.time.day,
 		forceArea: function(d) {
@@ -277,6 +284,7 @@ $(document).ready(function() {
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
+	//console.log('data-ready ...');
 	drawChart("#chart1", gdata, options)	
 })
 
@@ -308,7 +316,7 @@ lastYear = function(years) {
 
 </head>
 
-<body>
+<body style="">
 	<div>
 		<a href="javascript: lastWeek()">Last week</a>
 		&nbsp;
@@ -321,7 +329,7 @@ lastYear = function(years) {
 		<a href="javascript: lastYear(5)">Last 5 years</a>
 	</div>
 
-	<div width="100%" style="padding: 10px 25px 10px 25px;">
+	<div id="chart-container" width="100%" style="padding: 10px 25px 10px 25px;">
 		<svg id="chart1">
 		</svg>
  	</div>

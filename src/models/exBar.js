@@ -62,8 +62,9 @@ var
   function getXPos(xval, bandWidth) {
     if (timeserie) {
       var xdomain = x.domain();
-      var diff = interval.range(xdomain[0], xval).length;
-      return (diff * bandWidth);
+      //var diff = interval.range(xdomain[0], xval).length;
+      //return (diff * bandWidth);
+      return x(xval)
     } else {
       return x(xval)
     }
@@ -933,11 +934,11 @@ var
       //console.log('seriesData', seriesData);
 
       if (timeserie) {
-        var minDate = d3.min(d3.merge(seriesData).map(function(d) { return interval(d.x) }));
-        var maxDate = d3.max(d3.merge(seriesData).map(function(d) { return interval(d.x) }));
-        maxDate = interval.offset(maxDate, 1);
-        var timeRange = interval.range(minDate, maxDate);
-        x.domain([minDate, maxDate]);
+        var minDate = d3.min(d3.merge(seriesData).map(function(d) { return interval.floor(d.x) }));
+        var maxDate = d3.max(d3.merge(seriesData).map(function(d) { return interval.floor(d.x) }));
+        var maxDate2 = d3.time.second.offset(interval.offset(maxDate, 1), - 1);
+        var timeRange = interval.range(minDate, maxDate2);
+        x.domain([minDate, maxDate2]);
         //
         var maxElements = timeRange.length;
         //minDate = timeRange[0];
@@ -950,6 +951,7 @@ var
         x.range([0, availableWidth]);
         //console.log(x(minDate), x(maxDate), x(interval.offset(minDate, 1)));
         //console.log(minDate.getTime(), maxDate.getTime(), interval.offset(minDate, 1).getTime());
+        //console.log('x.domain()', x.domain());
       } else {
         x.domain(d3.merge(seriesData).map(function(d) { return d.x }))
         //x.domain(["02-Feb-12", "03-Feb-12", "04-Feb-12", "05-Feb-12", "06-Feb-12", "07-Feb-12", "08-Feb-12", "09-Feb-12", "10-Feb-12", "11-Feb-12"])

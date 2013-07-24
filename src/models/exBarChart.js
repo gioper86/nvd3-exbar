@@ -198,7 +198,7 @@ nv.models.exBarChart = function(options) {
       y1 = bars.yScale();
       y2 = lines.yScale();
       if (withContext) {
-        x2 = x2Axis.scale();
+        x2 = bars2.xScale();
         y3 = bars2.yScale();
         y4 = lines2.yScale();        
       }
@@ -218,19 +218,25 @@ nv.models.exBarChart = function(options) {
         });
 
       if (withContext) {
+        /*
         if (timeserie) {
-          x2.domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+          x2domain = d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } );
+          x2domain[1] = d3.time.second.offset(interval.offset(x2domain[1], 1), - 1);
+          x2.domain(x2domain)
         } else {
           x2.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
         }
+        */
         x.range([0, availableWidth]);        
         x2.range([0, availableWidth]);        
       } else {
+        /*
         if (timeserie) {
           x.domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
         } else {
           x.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
         }
+        */
         x.range([0, availableWidth]);        
       }
 
@@ -342,11 +348,11 @@ nv.models.exBarChart = function(options) {
           }));
 
         var bars2Wrap = g.select('.nv-context .nv-barsWrap')
-            .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
+          .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
 
         var noLines = (typeof dataForY2Axis[0] == "undefined")
         var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-            .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
+          .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
             
         g.select('.nv-context')
             .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
@@ -393,7 +399,10 @@ nv.models.exBarChart = function(options) {
           .on('brush', onBrush);
 
         if (brushExtent) {
-          brushExtent = [Math.max(brushExtent[0], x2.domain()[0]), Math.min(brushExtent[1], x2.domain()[1])]
+          if (brushExtent[0] < x2.domain()[0])
+            brushExtent[0] = x2.domain()[0];
+          if (brushExtent[1] > x2.domain()[1])
+            brushExtent[1] = x2.domain()[1];
           brush.extent(brushExtent);
         }
 
@@ -425,18 +434,41 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
 
+      var timeserie_ticks = function(start, stop, step) {
+        //console.log('start, stop, step', start, stop, step);
+        var cnt = interval.range(start, stop).length;
+        step = Math.max(1, (cnt / 20));
+        var ticks1 = [];
+        var d1 = start;
+        while (d1 <= stop) {
+          d1 = interval.offset(d1, step);
+          ticks1.push(d1);
+        }
+        //console.log('cnt, step, len', cnt, step, ticks1.length);
+        return ticks1;
+      }
+
       //------------------------------------------------------------
       // Setup Secondary (Context) Axes
 
       if (withContext) {
+        x2Axis.scale(x2);
         x2Axis
-          .ticks( availableWidth / 100 )
           .tickSize(-availableHeight2, 0);
 
+        if (timeserie) {
+          x2Axis.ticks(timeserie_ticks);
+        } else {          
+          x2Axis.ticks(availableWidth / 100);
+        }
+        x2Axis.showMaxMin(timeserie);
+
+        //x2Axis.ticks(interval.range, 1);                      
+
         g.select('.nv-context .nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y3.range()[0] + ')');
+          .attr('transform', 'translate(0,' + y3.range()[0] + ')');
         d3.transition(g.select('.nv-context .nv-x.nv-axis'))
-            .call(x2Axis);
+          .call(x2Axis);
 
 
         y3Axis
@@ -445,8 +477,8 @@ nv.models.exBarChart = function(options) {
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-context .nv-y1.nv-axis')
-            .style('opacity', dataForYAxis.length ? 1 : 0)
-            .attr('transform', 'translate(0,' + x2.range()[0] + ')');
+          .style('opacity', dataForYAxis.length ? 1 : 0)
+          .attr('transform', 'translate(0,' + x2.range()[0] + ')');
             
         /* hide y3Axis 
         d3.transition(g.select('.nv-context .nv-y1.nv-axis'))
@@ -561,17 +593,17 @@ nv.models.exBarChart = function(options) {
       function updateBrushBG() {
         if (!brush.empty()) brush.extent(brushExtent);
         brushBG
-            .data([brush.empty() ? x2.domain() : brushExtent])
-            .each(function(d,i) {
-              var leftWidth = x2(d[0]) - x2.range()[0],
-                  rightWidth = x2.range()[1] - x2(d[1]);
-              d3.select(this).select('.left')
-                .attr('width',  leftWidth < 0 ? 0 : leftWidth);
+          .data([brush.empty() ? x2.domain() : brushExtent])
+          .each(function(d,i) {
+            var leftWidth = x2(d[0]) - x2.range()[0],
+                rightWidth = x2.range()[1] - x2(d[1]);
+            d3.select(this).select('.left')
+              .attr('width',  leftWidth < 0 ? 0 : leftWidth);
 
-              d3.select(this).select('.right')
-                .attr('x', x2(d[1]))
-                .attr('width', rightWidth < 0 ? 0 : rightWidth);
-            });
+            d3.select(this).select('.right')
+              .attr('x', x2(d[1]))
+              .attr('width', rightWidth < 0 ? 0 : rightWidth);
+          });
       }
 
       function initAxis(extent) {
@@ -582,9 +614,9 @@ nv.models.exBarChart = function(options) {
         // Update Main (Focus) X Axis
 
         if (dataForYAxis.length) {
-            x = bars.xScale();
+          x = bars.xScale();
         } else {
-            x = lines.xScale();
+          x = lines.xScale();
         }
 
         // Setup Axes
@@ -594,8 +626,7 @@ nv.models.exBarChart = function(options) {
           .scale(x)
           .tickSize(-availableHeight1, 0);
         if (timeserie) {
-          //xAxis.ticks(interval.range, 1);
-          xAxis.ticks(availableWidth / 100)
+          xAxis.ticks(timeserie_ticks, 1)
         } else {
           xAxis.ticks(availableWidth / 100)
         }
@@ -606,7 +637,7 @@ nv.models.exBarChart = function(options) {
         //console.log('x.domain before: : ', x.domain());
         //console.log('extent', extent);
         if (timeserie) {
-          xAxis.domain([extent[0], extent[1]]);
+          //xAxis.domain([extent[0], extent[1]]);
         } else {
           //xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
           //xAxis.domain([extent[0], extent[1]]);
@@ -700,6 +731,8 @@ nv.models.exBarChart = function(options) {
         dispatch.brush({extent: extent, brush: brush});
 
         updateBrushBG();
+
+        //console.log('onBrush - extent', extent);
 
         //
 

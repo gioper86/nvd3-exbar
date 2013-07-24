@@ -205,9 +205,9 @@ function drawChart(selector, gdata, options) {
 		chart.x2Axis.tickFormat(function(d) { 
 			if (options.timeserie) {
 				//return chart.bars2.xScale().tickFormat()(new Date(d));
-				return d3.time.format('%d-%m-%y')(new Date(d))
+				return d3.time.format('%d-%m-%y')(d)
 			} else {
-				return d3.time.format('%d-%m-%y')(new Date(d))
+				return d3.time.format('%d-%m-%y')(d)
 			}
 		});
 		chart.y3Axis.tickFormat(function(d) {
@@ -257,17 +257,17 @@ $(document).ready(function() {
 		//context: true,
 		margin: {bottom: 50, left: 100},
 		timeserie: true,
-		sparse: false,
+		sparse: true,
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 2000,
+		items: 3,
 		showStacked: true,
 		showDelayed: true,
-		showControls: false,
+		showControls: true,
 		numberOfAreaSeries: 0,
-		numberOfBarSeries: 3,
-		numberOfMarkSeries: 2,
+		numberOfBarSeries: 1,
+		numberOfMarkSeries: 1,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
@@ -276,7 +276,7 @@ $(document).ready(function() {
 		incomplete: false,
 		interval: d3.time.day,
 		forceArea: function(d) {
-			return true;
+			return false;
 		},
 		forceLine: function(d) {
 			return true;

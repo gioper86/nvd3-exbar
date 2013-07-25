@@ -45,7 +45,7 @@ text {
 <script type="text/javascript">
 
 function generateRandomData(options) {
-	var colors = d3.scale.category20().range();
+	var colors = d3.scale.category10().range();
 	//
 	var gdata = {
 		series: []
@@ -94,7 +94,7 @@ function generateRandomData(options) {
 	for (var di=0; di<options.items; ++di) {
 		d += diff;
 		if (options.sparse) {
-			diff = Math.random() * 4
+			diff = Math.max(1, Math.random() * 4);
 		}
 		date1 = options.interval.offset(date1, diff);
 		//console.log('date1: ', d3.time.format('%d-%b-%y')(date1));
@@ -257,16 +257,16 @@ $(document).ready(function() {
 		//context: true,
 		margin: {bottom: 50, left: 100},
 		timeserie: true,
-		sparse: true,
+		sparse: false,
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 3,
+		items: 10,
 		showStacked: true,
 		showDelayed: true,
 		showControls: true,
 		numberOfAreaSeries: 0,
-		numberOfBarSeries: 1,
+		numberOfBarSeries: 2,
 		numberOfMarkSeries: 1,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
@@ -276,11 +276,13 @@ $(document).ready(function() {
 		incomplete: false,
 		interval: d3.time.day,
 		forceArea: function(d) {
-			return false;
+			return true;
 		},
 		forceLine: function(d) {
 			return true;
-		}
+		},
+		disContinuedLines: true,
+		disContinuedAreas: true,
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);

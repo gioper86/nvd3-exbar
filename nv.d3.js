@@ -13065,6 +13065,7 @@ nv.models.exBar = function(options) {
   //------------------------------------------------------------
 
   var margin = {top: 0, right: 0, bottom: 0, left: 0}
+    , mainMargin = {top: 0, right: 0, bottom: 0, left: 0}
     , width = 960
     , height = 500
     , timeserie = options.timeserie
@@ -13120,10 +13121,39 @@ var
   function getXPos(xval, bandWidth) {
     if (timeserie) {
       var xdomain = x.domain();
-      var diff = interval.range(xdomain[0], xval).length;
-      return (diff * bandWidth);
+      //var diff = interval.range(xdomain[0], xval).length;
+      //return (diff * bandWidth);
+      return x(xval)
     } else {
       return x(xval)
+    }
+  }
+
+  var xvalue = -1;
+  var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
+    var el = $(g).closest('svg')[0];
+    var pos = d3.mouse(el);
+    //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
+    var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    //var nxvalue = (x.invert(ev.pageX));
+    if (nxvalue - xvalue != 0) {
+      xvalue = nxvalue;
+      //console.log('x.domain, xvalue', x.domain(), xvalue);
+      //console.log('pageX, margin.left', d3.event.pageX, margin.left);
+      dispatch.elementMouseover({
+        isFromArea: true,
+        pos: [d3.event.pageX, d3.event.pageY],
+        series: d,
+        seriesIndex: i,
+        data: data,
+        dataMappedByX: dataMappedByX,
+        point: xvalue,
+        xvalue: xvalue,
+        value: dataMappedByX[xvalue],
+        //pos: getPosBars(d, i, j),
+        //pointIndex: i,
+        e: d3.event
+      })
     }
   }
 
@@ -13135,19 +13165,18 @@ var
       //
       if (dataAreas.length > 0) {
         dataAreas = d3.layout.stack()
-               .order(order)
-               .offset(offset)
-               .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-               .x(getX)
-               .y(/*function(d) { return d.stackedY }*/getY)
-               .out(function(d, y0, y) {
-                  d.display = {
-                    //x: getXPos(getX(d, i), bandWidth),
-                    y: y,
-                   y0: y0
-                  };
-                })
-              (dataAreas);
+          .order(order)
+          .offset(offset)
+          .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+          .x(getX)
+          .y(/*function(d) { return d.stackedY }*/getY)
+          .out(function(d, y0, y) {
+            d.display = {
+              //x: getXPos(getX(d, i), bandWidth),
+              y: y,
+              y0: y0
+            };
+          })(dataAreas);
       }
       //console.log('dataAreas2', dataAreas);
 
@@ -13176,17 +13205,18 @@ var
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-      var area = d3.svg.area()
-          .x(function(d,i)  { return getXPos(getX(d,i), bandWidth) + (.5 * bandWidth) })
+      var area = d3.svg.area2(bandWidth, interval, options.disContinuedAreas)
+          .x(function(d, i)  { return getXPos(getX(d, i)) })
+          .xdata(function(d, i) { return getX(d, i) })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y + d.display.y0) })
           .interpolate(interpolate);
 
-      var zeroArea = d3.svg.area()
-          .x(function(d,i)  { return x(getX(d,i)) })
+      var zeroArea = d3.svg.area2()
+          .x(function(d, i)  { return getXPos(getX(d, i)) })
+          .xdata(function(d, i) { return getX(d, i) })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y0) });
-
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
@@ -13205,23 +13235,9 @@ var
               pos: [d3.event.pageX, d3.event.pageY],
               seriesIndex: i
             });
-            //
-            var xvalue = x.invert(d3.event.pageX);
-            console.log('xvalue', xvalue);
-            dispatch.elementMouseover({
-              isFromArea: true,
-              pos: [d3.event.pageX, d3.event.pageY],
-              series: d,
-              seriesIndex: i,
-              data: data,
-              dataMappedByX: dataMappedByX,
-
-              point: xvalue,
-              value: dataMappedByX[xvalue],
-              //pos: getPosBars(d, i, j),
-              //pointIndex: i,
-              e: d3.event
-            })
+          })
+          .on('mousemove', function(d,i,j) {
+            mouseLocationChangedOnArea(d, i, g, odata, dataMappedByX);
           })
           .on('mouseout', function(d,i,j) {
             d3.select(this).classed('hover', false);
@@ -13262,15 +13278,8 @@ var
         .style('stroke', function(d,i){ return d.color || color(d, i) });
       //d3.transition(path)
       path
-        .attr('d', function(d,i,j) {
-          //console.log('attr-d', d, i, j);
-          return area(d.values,i)
-          /*
-          return area()
-            .x(function(d,i) { return getXPos(getX(d, i), bandWidth); })
-            .y0(function(d,i) { return d.y0; })
-            .y1(function(d,i) { return d.y; }); 
-          */
+        .attr('d', function(d) {
+          return area(d.values);
         })
 
 
@@ -13807,6 +13816,7 @@ var
   function chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines, delayed) {
     //console.log('chartMarks', data, dataMarks);
     //------------------------------------------------------------
+    var odata = data;
 
     //------------------------------------------------------------
     // Setup containers and skeleton of chart
@@ -13842,79 +13852,63 @@ var
         .style('fill-opacity', .5);
 
 
-
-    var areaPaths = groups.selectAll('path.nv-area')
-        .data(function(d) { return isArea(d) ? [d] : [] }); // this is done differently than lines because I need to check if series is an area
-    areaPaths.enter().append('path')
-        .attr('class', 'nv-area')
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x0(getX(d,i)) })
-              .y0(function(d,i) { return y0(getY(d,i)) })
-              .y1(function(d,i) { return y0( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-    d3.transition(groups.exit().selectAll('path.nv-area'))
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x(getX(d,i)) })
-              .y0(function(d,i) { return y(getY(d,i)) })
-              .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-    d3.transition(areaPaths)
-        .attr('d', function(d) {
-          return d3.svg.area()
-              .interpolate(interpolate)
-              .defined(defined)
-              .x(function(d,i) { return x(getX(d,i)) })
-              .y0(function(d,i) { return y(getY(d,i)) })
-              .y1(function(d,i) { return y( y.domain()[0] <= 0 ? y.domain()[1] >= 0 ? 0 : y.domain()[1] : y.domain()[0] ) })
-              //.y1(function(d,i) { return y0(0) }) //assuming 0 is within y domain.. may need to tweak this
-              .apply(this, [d.values])
-        });
-
-
-
     var linePaths = groups.selectAll('path.nv-line')
-        .data(function(d) { return [d.values] });
+      .data(function(d) { return [d.values] });
     linePaths.enter().append('path')
-        .attr('class', 'nv-line')
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x0(getX(d,i)) })
-            .y(function(d,i) { return y0(getY(d,i)) })
-        );
+      .attr('class', 'nv-line')
+      .on('mouseover', function(d,i,j) {
+        d3.select(this).classed('hover', true);
+        dispatch.areaMouseover({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+      })
+      .on('mousemove', function(d,i,j) {
+        mouseLocationChangedOnArea(d, i, g, odata, dataMappedByX);
+      })
+      .on('mouseout', function(d,i,j) {
+        d3.select(this).classed('hover', false);
+        dispatch.areaMouseout({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+        dispatch.elementMouseout({
+          value: getY(d, i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('click', function(d,i) {
+        d3.select(this).classed('hover', false);
+        dispatch.areaClick({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+      })
+      ;
+
     d3.transition(groups.exit().selectAll('path.nv-line'))
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-        );
+      .remove();
     d3.transition(linePaths)
-        .attr('d',
-          d3.svg.line()
-            .interpolate(interpolate)
-            .defined(defined)
-            .x(function(d,i) { return x(getX(d,i)) })
-            .y(function(d,i) { return y(getY(d,i)) })
-        );
-
-
-
-    //store old scales for use in transitions on update
-    x0 = x.copy();
-    y0 = y.copy();
+      .attr('d',
+        d3.svg.line2(bandWidth, interval, options.disContinuedLines)
+          .interpolate(interpolate)
+          .defined(defined)
+          .xdata(function(d, i) { return getX(d, i); })
+          .x(function(d,i) { return getXPos(getX(d, i), bandWidth) })
+          .y(function(d,i) { return y(getY(d,i)) })
+      );
   }
 
   function chart(selection) {
@@ -14012,11 +14006,11 @@ var
       //console.log('seriesData', seriesData);
 
       if (timeserie) {
-        var minDate = d3.min(d3.merge(seriesData).map(function(d) { return interval(d.x) }));
-        var maxDate = d3.max(d3.merge(seriesData).map(function(d) { return interval(d.x) }));
-        maxDate = interval.offset(maxDate, 1);
-        var timeRange = interval.range(minDate, maxDate);
-        x.domain([minDate, maxDate]);
+        var minDate = d3.min(d3.merge(seriesData).map(function(d) { return interval.floor(d.x) }));
+        var maxDate = d3.max(d3.merge(seriesData).map(function(d) { return interval.floor(d.x) }));
+        var maxDate2 = d3.time.second.offset(interval.offset(maxDate, 1), - 1);
+        var timeRange = interval.range(minDate, maxDate2);
+        x.domain([minDate, maxDate2]);
         //
         var maxElements = timeRange.length;
         //minDate = timeRange[0];
@@ -14029,6 +14023,7 @@ var
         x.range([0, availableWidth]);
         //console.log(x(minDate), x(maxDate), x(interval.offset(minDate, 1)));
         //console.log(minDate.getTime(), maxDate.getTime(), interval.offset(minDate, 1).getTime());
+        //console.log('x.domain()', x.domain());
       } else {
         x.domain(d3.merge(seriesData).map(function(d) { return d.x }))
         //x.domain(["02-Feb-12", "03-Feb-12", "04-Feb-12", "05-Feb-12", "06-Feb-12", "07-Feb-12", "08-Feb-12", "09-Feb-12", "10-Feb-12", "11-Feb-12"])
@@ -14124,6 +14119,15 @@ var
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.mainMargin = function(_) {
+    if (!arguments.length) return mainMargin;
+    mainMargin.top    = typeof _.top    != 'undefined' ? _.top    : mainMargin.top;
+    mainMargin.right  = typeof _.right  != 'undefined' ? _.right  : mainMargin.right;
+    mainMargin.bottom = typeof _.bottom != 'undefined' ? _.bottom : mainMargin.bottom;
+    mainMargin.left   = typeof _.left   != 'undefined' ? _.left   : mainMargin.left;
     return chart;
   };
 
@@ -14353,18 +14357,24 @@ nv.models.exBarChart = function(options) {
   var showTooltip = function(e, offsetElement) {
     //console.log('showTooltip', e, offsetElement);
     if (e.isFromArea) {
-      return;
-      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-          top = e.pos[1] + ( offsetElement.offsetTop || 0),
-          x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
-          y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
-          content = 'tooltip'//tooltip(e.series.key, x, y, e, chart);
-      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-      return;
+      //return;
+      var left = e.pos[0]; // + ( offsetElement.offsetLeft || 0 ),
+          top = e.pos[1] - 25; // + ( offsetElement.offsetTop || 0),
+          //x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+          //y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
+          xvalue = e.xvalue;
+          x = e.xvalue;
+          var y;
+          e.xformatted = xAxis.tickFormat()(x);
+          content = tooltip(e.series.key, x, y, e, chart);
+          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+          return;
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+        x = bars.x()(e.point, e.pointIndex);
+        xformatted = xAxis.tickFormat()(x),
+        e.xformatted = xformatted;
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
@@ -14400,7 +14410,7 @@ nv.models.exBarChart = function(options) {
       var container = d3.select(this),
           that = this;
 
-      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+      var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2,
@@ -14440,7 +14450,7 @@ nv.models.exBarChart = function(options) {
       y1 = bars.yScale();
       y2 = lines.yScale();
       if (withContext) {
-        x2 = x2Axis.scale();
+        x2 = bars2.xScale();
         y3 = bars2.yScale();
         y4 = lines2.yScale();        
       }
@@ -14460,19 +14470,25 @@ nv.models.exBarChart = function(options) {
         });
 
       if (withContext) {
+        /*
         if (timeserie) {
-          x2.domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
+          x2domain = d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } );
+          x2domain[1] = d3.time.second.offset(interval.offset(x2domain[1], 1), - 1);
+          x2.domain(x2domain)
         } else {
           x2.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
         }
+        */
         x.range([0, availableWidth]);        
         x2.range([0, availableWidth]);        
       } else {
+        /*
         if (timeserie) {
           x.domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
         } else {
           x.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
         }
+        */
         x.range([0, availableWidth]);        
       }
 
@@ -14584,11 +14600,11 @@ nv.models.exBarChart = function(options) {
           }));
 
         var bars2Wrap = g.select('.nv-context .nv-barsWrap')
-            .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
+          .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
 
         var noLines = (typeof dataForY2Axis[0] == "undefined")
         var lines2Wrap = g.select('.nv-context .nv-linesWrap')
-            .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
+          .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
             
         g.select('.nv-context')
             .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
@@ -14635,7 +14651,10 @@ nv.models.exBarChart = function(options) {
           .on('brush', onBrush);
 
         if (brushExtent) {
-          brushExtent = [Math.max(brushExtent[0], x2.domain()[0]), Math.min(brushExtent[1], x2.domain()[1])]
+          if (brushExtent[0] < x2.domain()[0])
+            brushExtent[0] = x2.domain()[0];
+          if (brushExtent[1] > x2.domain()[1])
+            brushExtent[1] = x2.domain()[1];
           brush.extent(brushExtent);
         }
 
@@ -14667,18 +14686,55 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
 
+      var timeserie_ticks = function(start, stop, step) {
+        //console.log('start, stop, step', start, stop, step);
+        var cnt = interval.range(start, stop).length;
+        step = Math.max(1, (cnt / 20));
+        var ticks1 = [];
+        var d1 = start;
+        while (d1 <= stop) {
+          d1 = interval.offset(d1, step);
+          ticks1.push(d1);
+        }
+        //console.log('cnt, step, len', cnt, step, ticks1.length);
+        return ticks1;
+      }
+
+      var timeserie_ticks2 = function(start, stop, step) {
+        //console.log('start, stop, step', start, stop, step);
+        var cnt = interval.range(start, stop).length;
+        step = Math.max(1, (cnt / 7));
+        var ticks1 = [];
+        var d1 = start;
+        while (d1 <= stop) {
+          d1 = interval.offset(d1, step);
+          ticks1.push(d1);
+        }
+        //console.log('cnt, step, len', cnt, step, ticks1.length);
+        return ticks1;
+      }
+
       //------------------------------------------------------------
       // Setup Secondary (Context) Axes
 
       if (withContext) {
+        x2Axis.scale(x2);
         x2Axis
-          .ticks( availableWidth / 100 )
           .tickSize(-availableHeight2, 0);
 
+        if (timeserie) {
+          x2Axis.ticks(timeserie_ticks2);
+        } else {          
+          x2Axis.ticks(availableWidth / 100);
+        }
+        x2Axis.showMaxMin(timeserie);
+
+        //x2Axis.ticks(interval.range, 1);                      
+
         g.select('.nv-context .nv-x.nv-axis')
-            .attr('transform', 'translate(0,' + y3.range()[0] + ')');
+          .attr('transform', 'translate(0,' + y3.range()[0] + ')');
         d3.transition(g.select('.nv-context .nv-x.nv-axis'))
-            .call(x2Axis);
+          .call(x2Axis);
 
 
         y3Axis
@@ -14687,8 +14743,8 @@ nv.models.exBarChart = function(options) {
           .tickSize( -availableWidth, 0);
 
         g.select('.nv-context .nv-y1.nv-axis')
-            .style('opacity', dataForYAxis.length ? 1 : 0)
-            .attr('transform', 'translate(0,' + x2.range()[0] + ')');
+          .style('opacity', dataForYAxis.length ? 1 : 0)
+          .attr('transform', 'translate(0,' + x2.range()[0] + ')');
             
         /* hide y3Axis 
         d3.transition(g.select('.nv-context .nv-y1.nv-axis'))
@@ -14755,6 +14811,7 @@ nv.models.exBarChart = function(options) {
       });
 
       dispatch.on('tooltipShow', function(e) {
+        dispatch.tooltipHide(e);
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
@@ -14803,17 +14860,17 @@ nv.models.exBarChart = function(options) {
       function updateBrushBG() {
         if (!brush.empty()) brush.extent(brushExtent);
         brushBG
-            .data([brush.empty() ? x2.domain() : brushExtent])
-            .each(function(d,i) {
-              var leftWidth = x2(d[0]) - x2.range()[0],
-                  rightWidth = x2.range()[1] - x2(d[1]);
-              d3.select(this).select('.left')
-                .attr('width',  leftWidth < 0 ? 0 : leftWidth);
+          .data([brush.empty() ? x2.domain() : brushExtent])
+          .each(function(d,i) {
+            var leftWidth = x2(d[0]) - x2.range()[0],
+                rightWidth = x2.range()[1] - x2(d[1]);
+            d3.select(this).select('.left')
+              .attr('width',  leftWidth < 0 ? 0 : leftWidth);
 
-              d3.select(this).select('.right')
-                .attr('x', x2(d[1]))
-                .attr('width', rightWidth < 0 ? 0 : rightWidth);
-            });
+            d3.select(this).select('.right')
+              .attr('x', x2(d[1]))
+              .attr('width', rightWidth < 0 ? 0 : rightWidth);
+          });
       }
 
       function initAxis(extent) {
@@ -14824,9 +14881,9 @@ nv.models.exBarChart = function(options) {
         // Update Main (Focus) X Axis
 
         if (dataForYAxis.length) {
-            x = bars.xScale();
+          x = bars.xScale();
         } else {
-            x = lines.xScale();
+          x = lines.xScale();
         }
 
         // Setup Axes
@@ -14836,8 +14893,7 @@ nv.models.exBarChart = function(options) {
           .scale(x)
           .tickSize(-availableHeight1, 0);
         if (timeserie) {
-          //xAxis.ticks(interval.range, 1);
-          xAxis.ticks(availableWidth / 100)
+          xAxis.ticks(timeserie_ticks, 1)
         } else {
           xAxis.ticks(availableWidth / 100)
         }
@@ -14848,7 +14904,7 @@ nv.models.exBarChart = function(options) {
         //console.log('x.domain before: : ', x.domain());
         //console.log('extent', extent);
         if (timeserie) {
-          xAxis.domain([extent[0], extent[1]]);
+          //xAxis.domain([extent[0], extent[1]]);
         } else {
           //xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
           //xAxis.domain([extent[0], extent[1]]);
@@ -14942,6 +14998,8 @@ nv.models.exBarChart = function(options) {
         dispatch.brush({extent: extent, brush: brush});
 
         updateBrushBG();
+
+        //console.log('onBrush - extent', extent);
 
         //
 
@@ -15122,6 +15180,11 @@ nv.models.exBarChart = function(options) {
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    //
+    bars.mainMargin(margin);
+    if (typeof bars2 !== "undefined") {
+      bars.mainMargin(margin);
+    }
     return chart;
   };
 

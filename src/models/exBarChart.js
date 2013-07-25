@@ -111,18 +111,24 @@ nv.models.exBarChart = function(options) {
   var showTooltip = function(e, offsetElement) {
     //console.log('showTooltip', e, offsetElement);
     if (e.isFromArea) {
-      return;
-      var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
-          top = e.pos[1] + ( offsetElement.offsetTop || 0),
-          x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
-          y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
-          content = 'tooltip'//tooltip(e.series.key, x, y, e, chart);
-      nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
-      return;
+      //return;
+      var left = e.pos[0]; // + ( offsetElement.offsetLeft || 0 ),
+          top = e.pos[1] - 25; // + ( offsetElement.offsetTop || 0),
+          //x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+          //y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
+          xvalue = e.xvalue;
+          x = e.xvalue;
+          var y;
+          e.xformatted = xAxis.tickFormat()(x);
+          content = tooltip(e.series.key, x, y, e, chart);
+          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+          return;
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
-        x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
+        x = bars.x()(e.point, e.pointIndex);
+        xformatted = xAxis.tickFormat()(x),
+        e.xformatted = xformatted;
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         content = tooltip(e.series.key, x, y, e, chart);
 
@@ -448,6 +454,20 @@ nv.models.exBarChart = function(options) {
         return ticks1;
       }
 
+      var timeserie_ticks2 = function(start, stop, step) {
+        //console.log('start, stop, step', start, stop, step);
+        var cnt = interval.range(start, stop).length;
+        step = Math.max(1, (cnt / 7));
+        var ticks1 = [];
+        var d1 = start;
+        while (d1 <= stop) {
+          d1 = interval.offset(d1, step);
+          ticks1.push(d1);
+        }
+        //console.log('cnt, step, len', cnt, step, ticks1.length);
+        return ticks1;
+      }
+
       //------------------------------------------------------------
       // Setup Secondary (Context) Axes
 
@@ -457,7 +477,7 @@ nv.models.exBarChart = function(options) {
           .tickSize(-availableHeight2, 0);
 
         if (timeserie) {
-          x2Axis.ticks(timeserie_ticks);
+          x2Axis.ticks(timeserie_ticks2);
         } else {          
           x2Axis.ticks(availableWidth / 100);
         }
@@ -545,6 +565,7 @@ nv.models.exBarChart = function(options) {
       });
 
       dispatch.on('tooltipShow', function(e) {
+        dispatch.tooltipHide(e);
         if (tooltips) showTooltip(e, that.parentNode);
       });
 

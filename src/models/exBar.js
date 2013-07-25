@@ -70,6 +70,34 @@ var
     }
   }
 
+  var xvalue = -1;
+  var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
+    var el = $(g).closest('svg')[0];
+    var pos = d3.mouse(el);
+    //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
+    var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    //var nxvalue = (x.invert(ev.pageX));
+    if (nxvalue - xvalue != 0) {
+      xvalue = nxvalue;
+      //console.log('x.domain, xvalue', x.domain(), xvalue);
+      //console.log('pageX, margin.left', d3.event.pageX, margin.left);
+      dispatch.elementMouseover({
+        isFromArea: true,
+        pos: [d3.event.pageX, d3.event.pageY],
+        series: d,
+        seriesIndex: i,
+        data: data,
+        dataMappedByX: dataMappedByX,
+        point: xvalue,
+        xvalue: xvalue,
+        value: dataMappedByX[xvalue],
+        //pos: getPosBars(d, i, j),
+        //pointIndex: i,
+        e: d3.event
+      })
+    }
+  }
+
   function chartAreas(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataAreas, delayed) {
       //console.log('dataAreas', dataAreas);
       //
@@ -78,19 +106,18 @@ var
       //
       if (dataAreas.length > 0) {
         dataAreas = d3.layout.stack()
-               .order(order)
-               .offset(offset)
-               .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
-               .x(getX)
-               .y(/*function(d) { return d.stackedY }*/getY)
-               .out(function(d, y0, y) {
-                  d.display = {
-                    //x: getXPos(getX(d, i), bandWidth),
-                    y: y,
-                   y0: y0
-                  };
-                })
-              (dataAreas);
+          .order(order)
+          .offset(offset)
+          .values(function(d) { return d.values })  //TODO: make values customizeable in EVERY model in this fashion
+          .x(getX)
+          .y(/*function(d) { return d.stackedY }*/getY)
+          .out(function(d, y0, y) {
+            d.display = {
+              //x: getXPos(getX(d, i), bandWidth),
+              y: y,
+              y0: y0
+            };
+          })(dataAreas);
       }
       //console.log('dataAreas2', dataAreas);
 
@@ -119,55 +146,29 @@ var
 
       g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-      var area = d3.svg.area()
-          .x(function(d,i)  { return d.xx; })
+      var area = d3.svg.area2(bandWidth, interval, options.disContinuedAreas)
+          .x(function(d, i)  { return getXPos(getX(d, i)) })
+          .xdata(function(d, i) { return getX(d, i) })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y + d.display.y0) })
           .interpolate(interpolate);
 
-      var zeroArea = d3.svg.area()
-          .x(function(d,i)  { return d.xx })
+      var zeroArea = d3.svg.area2()
+          .x(function(d, i)  { return getXPos(getX(d, i)) })
+          .xdata(function(d, i) { return getX(d, i) })
           .y0(function(d) { return y(d.display.y0) })
           .y1(function(d) { return y(d.display.y0) });
-
-      var prepareData = function(d) {
-        cvalues2 = [];
-        for (var ti=0; ti<d.values.length; ti++) {
-          var tv = d.values[ti];
-          tv.xx = getXPos(getX(tv,ti), bandWidth);
-          cvalues2.push(tv);
-          var tv2 = {};
-          $.extend(tv2, tv);
-          tv2.xx += bandWidth;
-          cvalues2.push(tv2);
-        }
-        return cvalues2;
-      }
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
           .data(function(d) { return d });
           //.data(function(d) { return d }, function(d) { return d.key });
-      var xvalue = -1;
-      var mouseLocationChanged = function() {
-        var el = $(g).closest('svg')[0];
-        //console.log('$this', );
-        var pos = d3.mouse(el);
-        //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
-        var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
-        //var nxvalue = (x.invert(ev.pageX));
-        if (nxvalue - xvalue != 0) {
-          xvalue = nxvalue;
-          console.log('x.domain, xvalue', x.domain(), xvalue);
-          //console.log('pageX, margin.left', d3.event.pageX, margin.left);
-        }
-      }
       path.enter()
         .append('path').attr('class', function(d,i) { 
           return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
         })
         .style('stroke-opacity', 1)
         .style('fill-opacity', 1)
-          .on('mousemove', function(d,i,j) {
+          .on('mouseover', function(d,i,j) {
             d3.select(this).classed('hover', true);
             dispatch.areaMouseover({
               point: d,
@@ -175,22 +176,9 @@ var
               pos: [d3.event.pageX, d3.event.pageY],
               seriesIndex: i
             });
-            //
-            mouseLocationChanged(d3.event);
-            dispatch.elementMouseover({
-              isFromArea: true,
-              pos: [d3.event.pageX, d3.event.pageY],
-              series: d,
-              seriesIndex: i,
-              data: data,
-              dataMappedByX: dataMappedByX,
-
-              point: xvalue,
-              value: dataMappedByX[xvalue],
-              //pos: getPosBars(d, i, j),
-              //pointIndex: i,
-              e: d3.event
-            })
+          })
+          .on('mousemove', function(d,i,j) {
+            mouseLocationChangedOnArea(d, i, g, odata, dataMappedByX);
           })
           .on('mouseout', function(d,i,j) {
             d3.select(this).classed('hover', false);
@@ -232,8 +220,7 @@ var
       //d3.transition(path)
       path
         .attr('d', function(d) {
-          var cvalues2 = prepareData(d);
-          return area(cvalues2);
+          return area(d.values);
         })
 
 
@@ -770,6 +757,7 @@ var
   function chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataLines, delayed) {
     //console.log('chartMarks', data, dataMarks);
     //------------------------------------------------------------
+    var odata = data;
 
     //------------------------------------------------------------
     // Setup containers and skeleton of chart
@@ -805,36 +793,61 @@ var
         .style('fill-opacity', .5);
 
 
-    var prepareData = function(values) {
-      cvalues2 = [];
-      for (var ti=0; ti<values.length; ti++) {
-        var tv = values[ti];
-        tv.xx = function(d, i) {
-          return getXPos(getX(d, i), bandWidth); // x(getX(d, i)); 
-        };
-        cvalues2.push(tv);
-        var tv2 = {};
-        $.extend(tv2, tv);
-        tv2.xx = function(d, i) {
-          return getXPos(getX(d, i), bandWidth) + bandWidth;
-        };
-        cvalues2.push(tv2);
-      }
-      return cvalues2;
-    }
-
     var linePaths = groups.selectAll('path.nv-line')
-      .data(function(d) { return [prepareData(d.values)] });
+      .data(function(d) { return [d.values] });
     linePaths.enter().append('path')
-      .attr('class', 'nv-line');
+      .attr('class', 'nv-line')
+      .on('mouseover', function(d,i,j) {
+        d3.select(this).classed('hover', true);
+        dispatch.areaMouseover({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+      })
+      .on('mousemove', function(d,i,j) {
+        mouseLocationChangedOnArea(d, i, g, odata, dataMappedByX);
+      })
+      .on('mouseout', function(d,i,j) {
+        d3.select(this).classed('hover', false);
+        dispatch.areaMouseout({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+        dispatch.elementMouseout({
+          value: getY(d, i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('click', function(d,i) {
+        d3.select(this).classed('hover', false);
+        dispatch.areaClick({
+          point: d,
+          series: d.key,
+          pos: [d3.event.pageX, d3.event.pageY],
+          seriesIndex: i
+        });
+      })
+      ;
+
     d3.transition(groups.exit().selectAll('path.nv-line'))
       .remove();
     d3.transition(linePaths)
       .attr('d',
-        d3.svg.line()
+        d3.svg.line2(bandWidth, interval, options.disContinuedLines)
           .interpolate(interpolate)
           .defined(defined)
-          .x(function(d,i) { return d.xx(d, i) })
+          .xdata(function(d, i) { return getX(d, i); })
+          .x(function(d,i) { return getXPos(getX(d, i), bandWidth) })
           .y(function(d,i) { return y(getY(d,i)) })
       );
   }

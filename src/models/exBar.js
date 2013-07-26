@@ -137,35 +137,24 @@ var
       //------------------------------------------------------------
 
       defsEnter.append('clipPath')
-          .attr('id', 'nv-edge-clip-' + id)
+        .attr('id', 'nv-edge-clip-' + id)
         .append('rect');
 
       wrap.select('#nv-edge-clip-' + id + ' rect')
-          .attr('width', availableWidth)
-          .attr('height', availableHeight);
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
 
-      g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
-
-      var area = d3.svg.area2(bandWidth, interval, options.disContinuedAreas)
-          .x(function(d, i)  { return getXPos(getX(d, i)) })
-          .xdata(function(d, i) { return getX(d, i) })
-          .y0(function(d) { return y(d.display.y0) })
-          .y1(function(d) { return y(d.display.y + d.display.y0) })
-          .interpolate(interpolate);
-
-      var zeroArea = d3.svg.area2()
-          .x(function(d, i)  { return getXPos(getX(d, i)) })
-          .xdata(function(d, i) { return getX(d, i) })
-          .y0(function(d) { return y(d.display.y0) })
-          .y1(function(d) { return y(d.display.y0) });
+      g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
       var path = g.select('.nv-areaWrap').selectAll('path.nv-area')
-          .data(function(d) { return d });
-          //.data(function(d) { return d }, function(d) { return d.key });
+        .data(function(d) { return d });
+        //.data(function(d) { return d }, function(d) { return d.key });
+
       path.enter()
-        .append('path').attr('class', function(d,i) { 
-          return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
-        })
+        .append('path')
+          .attr('class', function(d, i) { 
+            return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+          })
         .style('stroke-opacity', 1)
         .style('fill-opacity', 1)
           .on('mouseover', function(d,i,j) {
@@ -210,17 +199,23 @@ var
           })
       //d3.transition(path.exit())
       path.exit()
-        .attr('d', function(d,i) { 
-          return zeroArea(d.values,i) 
-        })
         .remove();
       path
         .style('fill', function(d,i){ return d.color || color(d, i) })
-        .style('stroke', function(d,i){ return d.color || color(d, i) });
+        .style('stroke', function(d,i){ return d.color || color(d, i) })
+        .attr('class', function(d, i) { 
+          return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        });
       //d3.transition(path)
       path
         .attr('d', function(d) {
-          return area(d.values);
+          return d3.svg.area2(bandWidth, interval, options.disContinuedAreas)
+            .x(function(d, i)  { return getXPos(getX(d, i)) })
+            .xdata(function(d, i) { return getX(d, i) })
+            .y0(function(d) { return y(d.display.y0) })
+            .y1(function(d) { return y(d.display.y + d.display.y0) })
+            .interpolate(interpolate)
+              (d.values);
         })
 
 
@@ -229,282 +224,263 @@ var
   }
 
   function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed) {
+    //console.log('dataBars', dataBars);
 
-      //------------------------------------------------------------
-      // Setup containers and skeleton of chart
+    //
+    dataBars.forEach(function(serie, serieVisIndex) {
+      serie.serieVisIndex = serieVisIndex;
+      serie.values.forEach(function(d, index) {
+        d.serieVisIndex = serieVisIndex;
+      });
+    });
+    //------------------------------------------------------------
+    // Setup containers and skeleton of chart
 
-      var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([dataBars]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
-      var defsEnter = wrapEnter.append('defs');
-      var gEnter = wrapEnter.append('g');
-      var g = wrap.select('g')
+    var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([dataBars]);
+    var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
+    var defsEnter = wrapEnter.append('defs');
+    var gEnter = wrapEnter.append('g');
+    var g = wrap.select('g')
 
-      gEnter.append('g').attr('class', 'nv-groups');
+    gEnter.append('g').attr('class', 'nv-groups');
 
-      wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-      //------------------------------------------------------------
+    //------------------------------------------------------------
 
-      defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + id)
-        .append('rect');
-      wrap.select('#nv-edge-clip-' + id + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
+    defsEnter.append('clipPath')
+      .attr('id', 'nv-edge-clip-' + id)
+      .append('rect');
+    wrap.select('#nv-edge-clip-' + id + ' rect')
+      .attr('width', availableWidth)
+      .attr('height', availableHeight);
 
-      g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+    g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
-      var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-        .data(function(d) { return d }, function(d) { return d.key });
+    var groups = wrap.select('.nv-groups').selectAll('.nv-group')
+      .data(function(d) { return d }, function(d) { return d.key });
 
-      groups.enter().append('g')
-        .style('stroke-opacity', 1)
-        .style('fill-opacity', 1);
+    groups.enter().append('g')
+      .style('stroke-opacity', 1)
+      .style('fill-opacity', 1);
 
-      if (delayed) {
-        var delayPerBar = delay;
-        var delayPerItem = 0;
-        if (typeof dataBars[0] != "undefined") {
-          delayPerItem = delayPerBar / dataBars[0].values.length
-        }
-        groups.exit()
-          .selectAll('rect.nv-bar')
-          .transition()
-          .delay(function(d,i) { return i * delayPerItem })
-            .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
-            .attr('height', 0)
-            .remove();
-      } else {
-        groups.exit()
-          .selectAll('rect.nv-bar')
-          .remove();
+    if (delayed) {
+      var delayPerBar = delay;
+      var delayPerItem = 0;
+      if (typeof dataBars[0] !== "undefined") {
+        delayPerItem = delayPerBar / dataBars[0].values.length
       }
-
-      groups
-        .attr('class', function(d,i) { 
-          return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
-        })
-        .classed('hover', function(d) { return d.hover })
-        .style('fill', function(d,i,j){ return color(d, i) })
-        .style('stroke', function(d,i,j){ return color(d, i) });
-      d3.transition(groups)
-        .style('stroke-opacity', 1)
-        .style('fill-opacity', 1/*.75*/);
-
-
-      var bars = groups.selectAll('rect.nv-bar')
-        .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
-
-      bars.exit().remove();
-
-      var barsEnter;
-      if (delayed) {
-        barsEnter = bars.enter().append('rect')
-          .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
-          .attr('x', function(d,i,j) {
-              if (timeserie) {
-                return stacked ? 0 : /*x(getX(d,i)) + */(j * barWidth)
-              } else {
-                return stacked ? 0 : (j * x.rangeBand() / dataBars.length)
-              }
-          })
-          .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
+      groups.exit()
+        .selectAll('rect.nv-bar')
+        .transition()
+        .delay(function(d,i) { return i * delayPerItem })
+          .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
-          .attr('width', function(d,i,j) {
+          .remove();
+    } else {
+      groups.exit()
+        .selectAll('rect.nv-bar')
+        .remove();
+    }
+
+    groups
+      .attr('class', function(d,i) { 
+        return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+      })
+      .classed('hover', function(d) { return d.hover })
+      .style('fill', function(d,i,j){ return color(d, i) })
+      .style('stroke', function(d,i,j){ return color(d, i) });
+    d3.transition(groups)
+      .style('stroke-opacity', 1)
+      .style('fill-opacity', 1/*.75*/);
+
+
+    var bars = groups.selectAll('rect.nv-bar')
+      .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
+
+    bars.exit().remove();
+
+    var barsEnter;
+    if (delayed) {
+      barsEnter = bars.enter().append('rect')
+        .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+        .attr('x', function(d,i,j) {
+            if (timeserie) {
+              return stacked ? 0 : /*x(getX(d,i)) + */(j * barWidth)
+            } else {
+              return stacked ? 0 : (j * x.rangeBand() / dataBars.length)
+            }
+        })
+        .attr('y', function(d) { return y0(stacked ? d.y0 : 0) })
+        .attr('height', 0)
+        .attr('width', function(d,i,j) {
+          if (timeserie) {
+            return stacked ? bandWidth : barWidth
+          } else {
+            return x.rangeBand() / (stacked ? 1 : dataBars.length)
+          }
+        });
+    } else {
+      barsEnter = bars.enter().append('rect');
+    }
+
+    var getPosBars = function(d, i, j) {
+      // TODO: Figure out why the value appears to be shifted
+      //console.log('getPosBars ...', d, i, j);
+      var pos;
+      if (timeserie) {
+        pos = [
+          getXPos(getX(d,i), bandWidth) + (bandWidth * (stacked ? dataBars.length / 2 : d.serieVisIndex + .5) / dataBars.length), 
+          y(getY(d,i) + (stacked ? d.y0 : 0))
+        ];
+      } else {
+        pos = [
+          getXPos(getX(d,i), bandWidth) + (x.rangeBand() * (stacked ? dataBars.length / 2 : d.serieVisIndex + .5) / dataBars.length),
+          y(getY(d,i) + (stacked ? d.y0 : 0))
+        ];
+      }
+      //console.log('pos', pos);
+      return pos;
+    }
+    
+    bars
+      .style('fill', function(d,i,j){ return color(d, j, i);  })
+      .style('stroke', function(d,i,j){ return color(d, j, i); })
+      .on('mouseover', function(d,i,j) { //TODO: figure out why j works above, but not here
+        d3.select(this).classed('hover', true);
+        dispatch.elementMouseover({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosBars(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('hover', false);
+        dispatch.elementMouseout({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('click', function(d,i,j) {
+        dispatch.elementClick({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosBars(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+        d3.event.stopPropagation();
+      })
+      .on('dblclick', function(d,i,j) {
+        dispatch.elementDblClick({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosBars(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+        d3.event.stopPropagation();
+      });
+    
+    bars
+      .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
+      .attr('transform', function(d,i,j) { 
+        return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
+      })
+
+
+
+    if (barColor) {
+      if (!disabled) disabled = dataBars.map(function() { return true });
+      bars
+        //.style('fill', barColor)
+        //.style('stroke', barColor)
+        //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+        //.style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
+        .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
+        .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
+    }
+
+    if (stacked) {
+      if (delayed) {
+        bars.transition()
+          .delay(function(d,i) { return i * delay / dataBars[0].values.length })
+          .attr('y', function(d,i) {
+            return y((stacked ? d.y1 : 0));
+          })
+          .attr('height', function(d,i) {
+            return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
+          })
+          .attr('x', function(d,i,j) {
+            if (timeserie) {
+              return stacked ? 0 : (j * barWidth)
+            } else {
+              return stacked ? 0 : (d.serieVisIndex * x.rangeBand() / dataBars.length)
+            }
+          })
+        .attr('width', function(d,i) {
+          if (timeserie) {
+            return stacked ? bandWidth : barWidth
+          } else {
+            return x.rangeBand() / (stacked ? 1 : dataBars.length)
+          }                  
+        });
+      } else {
+        bars
+          .attr('y', function(d,i) {
+            return y((stacked ? d.y1 : 0));
+          })
+          .attr('height', function(d,i) {
+            return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
+          })
+          .attr('x', function(d,i,j) {
+            if (timeserie) {
+              return stacked ? 0 : (j * barWidth)
+            } else {
+              return stacked ? 0 : (d.serieVisIndex * x.rangeBand() / dataBars.length)
+            }
+          })
+          .attr('width', function(d,i) {
             if (timeserie) {
               return stacked ? bandWidth : barWidth
             } else {
               return x.rangeBand() / (stacked ? 1 : dataBars.length)
             }
           });
-      } else {
-        barsEnter = bars.enter().append('rect');
       }
-
-      var getPosBars = function(d, i, j) {
-        // TODO: Figure out why the value appears to be shifted
-        //console.log('getPosBars ...', d, i, j);
-        var pos;
-        if (timeserie) {
-          pos = [
-            getXPos(getX(d,i), bandWidth) + (bandWidth * (stacked ? dataBars.length / 2 : d.series + .5) / dataBars.length), 
-            y(getY(d,i) + (stacked ? d.y0 : 0))
-          ];
-        } else {
-          pos = [
-            getXPos(getX(d,i), bandWidth) + (x.rangeBand() * (stacked ? dataBars.length / 2 : d.series + .5) / dataBars.length),
-            y(getY(d,i) + (stacked ? d.y0 : 0))
-          ];
-        }
-        //console.log('pos', pos);
-        return pos;
-      }
-      
-      bars
-        .style('fill', function(d,i,j){ return color(d, j, i);  })
-        .style('stroke', function(d,i,j){ return color(d, j, i); })
-        .on('mouseover', function(d,i,j) { //TODO: figure out why j works above, but not here
-          d3.select(this).classed('hover', true);
-          dispatch.elementMouseover({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosBars(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-        })
-        .on('mouseout', function(d,i) {
-          d3.select(this).classed('hover', false);
-          dispatch.elementMouseout({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-        })
-        .on('click', function(d,i,j) {
-          dispatch.elementClick({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosBars(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-          d3.event.stopPropagation();
-        })
-        .on('dblclick', function(d,i,j) {
-          dispatch.elementDblClick({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosBars(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-          d3.event.stopPropagation();
-        });
-      
-      bars
-        .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
-        .attr('transform', function(d,i,j) { 
-          return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
-        })
-
-
-
-      if (barColor) {
-        if (!disabled) disabled = dataBars.map(function() { return true });
-        bars
-          //.style('fill', barColor)
-          //.style('stroke', barColor)
-          //.style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
-          //.style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(j).toString(); })
-          .style('fill', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); })
-          .style('stroke', function(d,i,j) { return d3.rgb(barColor(d,i)).darker(  disabled.map(function(d,i) { return i }).filter(function(d,i){ return !disabled[i]  })[j]   ).toString(); });
-      }
-
-      if (stacked) {
-        if (delayed) {
-          bars.transition()
-            .delay(function(d,i) { return i * delay / dataBars[0].values.length })
-            .attr('y', function(d,i) {
-              return y((stacked ? d.y1 : 0));
-            })
-            .attr('height', function(d,i) {
-              return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
-            })
-            .attr('x', function(d,i,j) {
-              if (timeserie) {
-                return stacked ? 0 : (j * barWidth)
-              } else {
-                return stacked ? 0 : (d.series * x.rangeBand() / dataBars.length)
-              }
-            })
-          .attr('width', function(d,i) {
-            if (timeserie) {
-              return stacked ? bandWidth : barWidth
-            } else {
-              return x.rangeBand() / (stacked ? 1 : dataBars.length)
-            }                  
-          });
-        } else {
-          bars
-            .attr('y', function(d,i) {
-              return y((stacked ? d.y1 : 0));
-            })
-            .attr('height', function(d,i) {
-              return Math.max(Math.abs(y(d.y + (stacked ? d.y0 : 0)) - y((stacked ? d.y0 : 0))),1);
-            })
-            .attr('x', function(d,i,j) {
-              if (timeserie) {
-                return stacked ? 0 : (j * barWidth)
-              } else {
-                return stacked ? 0 : (d.series * x.rangeBand() / dataBars.length)
-              }
-            })
-            .attr('width', function(d,i) {
-              if (timeserie) {
-                return stacked ? bandWidth : barWidth
-              } else {
-                return x.rangeBand() / (stacked ? 1 : dataBars.length)
-              }
-            });
-        }
-      } else {
-        if (delayed) {
-          //d3.transition(bars).duration(drawTime)
-          bars.transition()
-            .delay(function(d,i) { return i * delay/ dataBars[0].values.length })
-              .attr('x', function(d,i,j) {
-                if (timeserie) {
-                  return stacked ? 0 : (j * barWidth)
-                } else {
-                  return stacked ? 0 : (d.series * x.rangeBand() / dataBars.length)
-                }
-              })
-              .attr('width', function(d,i,j) {
-                if (timeserie) {
-                  return stacked ? bandWidth : barWidth
-                } else {
-                  return x.rangeBand() / (stacked ? 1 : dataBars.length)
-                }
-              })
-              .attr('y', function(d,i) {
-                return getY(d,i) < 0 ?
-                        y(0) :
-                        y(0) - y(getY(d,i)) < 1 ?
-                          y(0) - 1 :
-                        y(getY(d,i)) || 0;
-              })
-              .attr('height', function(d,i) {
-                return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
-              });
-        } else {
+    } else {
+      if (delayed) {
         //d3.transition(bars).duration(drawTime)
-          bars
+        bars.transition()
+          .delay(function(d,i) { return i * delay/ dataBars[0].values.length })
             .attr('x', function(d,i,j) {
               if (timeserie) {
                 return stacked ? 0 : (j * barWidth)
               } else {
-                return stacked ? 0 : (d.series * x.rangeBand() / dataBars.length)
+                return stacked ? 0 : (d.serieVisIndex * x.rangeBand() / dataBars.length)
               }
             })
-            .attr('width', function(d,i) {
+            .attr('width', function(d,i,j) {
               if (timeserie) {
                 return stacked ? bandWidth : barWidth
               } else {
@@ -513,22 +489,56 @@ var
             })
             .attr('y', function(d,i) {
               return getY(d,i) < 0 ?
-                y(0) :
-                y(0) - y(getY(d,i)) < 1 ?
-                  y(0) - 1 :
-                y(getY(d,i)) || 0;
+                      y(0) :
+                      y(0) - y(getY(d,i)) < 1 ?
+                        y(0) - 1 :
+                      y(getY(d,i)) || 0;
             })
             .attr('height', function(d,i) {
               return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
             });
-        }
+      } else {
+      //d3.transition(bars).duration(drawTime)
+        bars
+          .attr('x', function(d,i,j) {
+            if (timeserie) {
+              return stacked ? 0 : (j * barWidth)
+            } else {
+              return stacked ? 0 : (d.serieVisIndex * x.rangeBand() / dataBars.length)
+            }
+          })
+          .attr('width', function(d,i) {
+            if (timeserie) {
+              return stacked ? bandWidth : barWidth
+            } else {
+              return x.rangeBand() / (stacked ? 1 : dataBars.length)
+            }
+          })
+          .attr('y', function(d,i) {
+            return getY(d,i) < 0 ?
+              y(0) :
+              y(0) - y(getY(d,i)) < 1 ?
+                y(0) - 1 :
+              y(getY(d,i)) || 0;
+          })
+          .attr('height', function(d,i) {
+            return Math.max(Math.abs(y(getY(d,i)) - y(0)),1) || 0;
+          });
       }
+    }
   }
 
   function chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks, delayed) {
     //console.log('chartMarks', data, dataMarks);
     //------------------------------------------------------------
 
+    //
+    dataMarks.forEach(function(serie, serieVisIndex) {
+      serie.serieVisIndex = serieVisIndex;
+      serie.values.forEach(function(d, index) {
+        d.serieVisIndex = serieVisIndex;
+      });
+    });
     //------------------------------------------------------------
     // Setup containers and skeleton of chart
 
@@ -564,7 +574,9 @@ var
         .selectAll('line.nv-mark')
         .transition()
         .delay(function(d,i) { return i * delay/ data[0].values.length })
-          .attr('x1', 0)
+          .attr('x1', function(d, i, j) {
+            return stacked || options.extendMarks ? 0 : (j * x.rangeBand() / dataMarks.length)
+          })
           .attr('x2', function(d,i,j) {
             if (timeserie) {
               return bandWidth
@@ -585,144 +597,144 @@ var
     }
 
     groups
-        .attr('class', function(d,i) { 
-          return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
-        })
-        .classed('hover', function(d) { return d.hover })
-        .style('fill', function(d,i,j){ return color(d, i) })
-        .style('stroke', function(d,i,j){ return color(d, i) });
+      .attr('class', function(d,i) { 
+        return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+      })
+      .classed('hover', function(d) { return d.hover })
+      .style('fill', function(d,i,j){ return color(d, i) })
+      .style('stroke', function(d,i,j){ return color(d, i) });
     d3.transition(groups)
-        .style('stroke-opacity', 1)
-        .style('fill-opacity', 1/*.75*/);
+      .style('stroke-opacity', 1)
+      .style('fill-opacity', 1/*.75*/);
     
-      var lines = groups.selectAll('line.nv-mark')
-          .data(function(d) { return (hideable && !dataMarks.length) ? hideable.values : d.values });
+    var lines = groups.selectAll('line.nv-mark')
+        .data(function(d) { return (hideable && !dataMarks.length) ? hideable.values : d.values });
 
-      lines.exit().remove();
+    lines.exit().remove();
 
 
-      var linesEnter;
-      if (delayed) {
-        linesEnter = lines.enter().append('line')
-          .attr('class', function(d,i,j) {
-            return getY(d,i) < 0 ? 'nv-mark negative' : 'nv-line positive';
-          })
-          .attr('x1', function(d,i,j) {
-              return 0;
-          })
-          .attr('x2', function(d,i,j) {
-            if (timeserie) {
-              return bandWidth
-            } else {
-              return x.rangeBand()
-            }
-          })
-          .attr('y1', function(d,i) { return y(0); })
-          .attr('y2', function(d,i) { return y(0); })
-      } else {
-        linesEnter = lines.enter().append('line')
-      }
-      
-      var getPosMarks = function(d, i, j) {
-        // TODO: Figure out why the value appears to be shifted
-        var pos;
-        if (timeserie) {
-          pos = [
-            getXPos(getX(d,i), bandWidth) + (bandWidth / 2), 
-            y(getY(d,i) + ((stacked && false) ? d.y0 : 0))
-          ];
-        } else {
-          //console.log('getPos ...', x(getX(d,i)), x.rangeBand(), xRangeBand);
-          pos = [
-            getXPos(getX(d,i), bandWidth) + (x.rangeBand() / 2),
-            y(getY(d,i) + ((stacked && false) ? d.y0 : 0))
-          ];
-        }
-        return pos;
-      }
-
-      lines
-        .style('fill', function(d,i,j){ return color(d, d.series);  })
-        .style('stroke', function(d,i,j){ return color(d, d.series); })
-        .on('mouseover', function(d,i,j) { //TODO: figure out why j works above, but not here
-          d3.select(this).classed('hover', true);
-          dispatch.elementMouseover({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosMarks(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-        })
-        .on('mouseout', function(d,i) {
-          d3.select(this).classed('hover', false);
-          dispatch.elementMouseout({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-        })
-        .on('click', function(d,i) {
-          dispatch.elementClick({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosMarks(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-          d3.event.stopPropagation();
-        })
-        .on('dblclick', function(d,i) {
-          dispatch.elementDblClick({
-            value: getY(d,i),
-            point: d,
-            data: data,
-            dataMappedByX: dataMappedByX,
-            series: data[d.series],
-            pos: getPosMarks(d, i, j),
-            pointIndex: i,
-            seriesIndex: d.series,
-            e: d3.event
-          });
-          d3.event.stopPropagation();
-        });
-      
-      lines
+    var linesEnter;
+    if (delayed) {
+      linesEnter = lines.enter().append('line')
         .attr('class', function(d,i,j) {
-          var elClass = getY(d,i) < 0 ? 'nv-mark negative' : 'nv-mark positive';
-          if (typeof dataMarks[j].elClass != "undefined") {
-            elClass += ' ' + dataMarks[j].elClass;
+          return getY(d,i) < 0 ? 'nv-mark negative' : 'nv-line positive';
+        })
+        .attr('x1', function(d, i, j) {
+          return stacked || options.extendMarks ? 0 : (j * x.rangeBand() / dataMarks.length)
+        })
+        .attr('x2', function(d, i, j) {
+          if (timeserie) {
+            return bandWidth
+          } else {
+            return stacked || options.extendMarks ? x.rangeBand() : ((j+1) * x.rangeBand() / dataMarks.length)
           }
-          return elClass;
         })
-        .attr('transform', function(d,i,j) {
-          return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
-        })
+        .attr('y1', function(d,i) { return y(0); })
+        .attr('y2', function(d,i) { return y(0); })
+    } else {
+      linesEnter = lines.enter().append('line')
+    }
+  
+    var getPosMarks = function(d, i, j) {
+      // TODO: Figure out why the value appears to be shifted
+      var pos;
+      if (timeserie) {
+        pos = [
+          getXPos(getX(d,i), bandWidth) + (bandWidth / 2), 
+          y(getY(d,i) + ((stacked && false) ? d.y0 : 0))
+        ];
+      } else {
+        //console.log('getPos ...', x(getX(d,i)), x.rangeBand(), xRangeBand);
+        pos = [
+          getXPos(getX(d,i), bandWidth) + (x.rangeBand() / 2),
+          y(getY(d,i) + ((stacked && false) ? d.y0 : 0))
+        ];
+      }
+      return pos;
+    }
+
+    lines
+      .style('fill', function(d,i,j){ return color(d, d.series);  })
+      .style('stroke', function(d,i,j){ return color(d, d.series); })
+      .on('mouseover', function(d,i,j) { //TODO: figure out why j works above, but not here
+        d3.select(this).classed('hover', true);
+        dispatch.elementMouseover({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosMarks(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('hover', false);
+        dispatch.elementMouseout({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+      })
+      .on('click', function(d,i) {
+        dispatch.elementClick({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosMarks(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+        d3.event.stopPropagation();
+      })
+      .on('dblclick', function(d,i) {
+        dispatch.elementDblClick({
+          value: getY(d,i),
+          point: d,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          series: data[d.series],
+          pos: getPosMarks(d, i, j),
+          pointIndex: i,
+          seriesIndex: d.series,
+          e: d3.event
+        });
+        d3.event.stopPropagation();
+      });
+  
+    lines
+      .attr('class', function(d,i,j) {
+        var elClass = getY(d,i) < 0 ? 'nv-mark negative' : 'nv-mark positive';
+        if (typeof dataMarks[j].elClass != "undefined") {
+          elClass += ' ' + dataMarks[j].elClass;
+        }
+        return elClass;
+      })
+      .attr('transform', function(d,i,j) {
+        return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
+      })
 
     if (delayed) {
       lines.transition()
         .delay(function(d,i) { return i * delay / data[0].values.length })
-        .attr('x1', function(d,i) {
-          return 0;
+        .attr('x1', function(d, i, j) {
+          return stacked || options.extendMarks ? 0 : (j * x.rangeBand() / dataMarks.length)
         })
-        .attr('x2', function(d,i,j) {
+        .attr('x2', function(d, i, j) {
           if (timeserie) {
             return bandWidth
           } else {
-            return x.rangeBand()
+            return stacked || options.extendMarks ? x.rangeBand() : ((j+1) * x.rangeBand() / dataMarks.length)
           }
         })
         .attr('stroke-width', 2)
@@ -734,14 +746,14 @@ var
         })    
       } else {
         lines
-          .attr('x1', function(d,i) {
-            return 0;
+          .attr('x1', function(d, i, j) {
+            return stacked || options.extendMarks ? 0 : (j * x.rangeBand() / dataMarks.length)
           })
-          .attr('x2', function(d,i,j) {
+          .attr('x2', function(d, i, j) {
             if (timeserie) {
               return bandWidth
             } else {
-              return x.rangeBand()
+              return stacked || options.extendMarks ? x.rangeBand() : ((j+1) * x.rangeBand() / dataMarks.length)
             }
           })
           .attr('stroke-width', 2)
@@ -773,24 +785,24 @@ var
     wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     var groups = wrap.select('.nv-groups').selectAll('.nv-group')
-        .data(function(d) { return d }, function(d) { return d.key });
+      .data(function(d) { return d }, function(d) { return d.key });
     groups.enter().append('g')
-        .style('stroke-opacity', 1e-6)
-        .style('fill-opacity', 1e-6);
+      .style('stroke-opacity', 1e-6)
+      .style('fill-opacity', 1e-6);
     d3.transition(groups.exit())
-        .style('stroke-opacity', 1e-6)
-        .style('fill-opacity', 1e-6)
-        .remove();
+      .style('stroke-opacity', 1e-6)
+      .style('fill-opacity', 1e-6)
+      .remove();
     groups
-        .attr('class', function(d,i) {
-          return 'nv-group nv-series-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
-        })
-        .classed('hover', function(d) { return d.hover })
-        .style('fill', function(d,i){ return color(d, i) })
-        .style('stroke', function(d,i){ return color(d, i)});
+      .attr('class', function(d,i) {
+        return 'nv-group nv-series-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+      })
+      .classed('hover', function(d) { return d.hover })
+      .style('fill', function(d,i){ return color(d, i) })
+      .style('stroke', function(d,i){ return color(d, i)});
     d3.transition(groups)
-        .style('stroke-opacity', 1)
-        .style('fill-opacity', .5);
+      .style('stroke-opacity', 1)
+      .style('fill-opacity', .5);
 
 
     var linePaths = groups.selectAll('path.nv-line')
@@ -890,9 +902,10 @@ var
         return series;
       });
 
-      var dataBars = data.filter(function(el, i, array) { return !el.hidden && !el.disabled && el.type == 'bar' });
-      var dataMarks = data.filter(function(el, i, array) { return !el.hidden && !el.disabled && el.type == 'mark' });
-      var dataLines = data.filter(function(el, i, array) { return !el.hidden && !el.disabled && el.type == 'line' });
+      var dataVisible = data.filter(function(d, i, array) { return !d.hidden && !d.disabled });
+      var dataBars = dataVisible.filter(function(d, i, array) { return d.type == 'bar' });
+      var dataMarks = dataVisible.filter(function(d, i, array) { return d.type == 'mark' });
+      var dataLines = dataVisible.filter(function(d, i, array) { return d.type == 'line' });
       //console.log('data, dataBars, dataMarks', data, dataBars, dataMarks);
 
       if (stacked && dataBars.length > 0) {
@@ -908,23 +921,25 @@ var
       //------------------------------------------------------------
       // HACK for negative value stacking
       if (stacked) {
-        data[0].values.map(function(d,i) {
-          var posBase = 0, negBase = 0;
-          data.map(function(d) {
-            var f = d.values[i]
-            if (typeof f != "undefined") {
-              f.size = Math.abs(f.y);
-              if (f.y<0)  {
-                f.y1 = negBase;
-                negBase = negBase - f.size;
-              } else
-              { 
-                f.y1 = f.size + posBase;
-                posBase = posBase + f.size;
+        if (dataVisible.length > 0) {
+          dataVisible[0].values.map(function(d,i) {
+            var posBase = 0, negBase = 0;
+            dataVisible.map(function(d) {
+              var f = d.values[i]
+              if (typeof f != "undefined") {
+                f.size = Math.abs(f.y);
+                if (f.y<0)  {
+                  f.y1 = negBase;
+                  negBase = negBase - f.size;
+                } else
+                { 
+                  f.y1 = f.size + posBase;
+                  posBase = posBase + f.size;
+                }
               }
-            }
+            });
           });
-        });
+        }
       }
 
       //------------------------------------------------------------
@@ -932,7 +947,7 @@ var
 
       // remap and flatten the data for use in calculating the scales' domains
       var seriesData = (xDomain && yDomain) ? [] : // if we know xDomain and yDomain, no need to calculate
-        data.map(function(d) {
+        dataVisible.map(function(d) {
           return d.values.map(function(d,i) {
             //console.log('sd', d, i);
             return { 
@@ -1006,7 +1021,7 @@ var
       */
 
       // draw bars
-      if (timeserie && options.forceArea(data)) {
+      if (timeserie) {
         chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
         chartAreas(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed);
       } else {
@@ -1015,7 +1030,7 @@ var
       }
 
       // draw marks
-      if (timeserie && options.forceLine(data)) {
+      if (timeserie) {
         chartMarks(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
         chartLines(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataMarks, delayed);
       } else {

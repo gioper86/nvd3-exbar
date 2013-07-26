@@ -58,7 +58,7 @@ function generateRandomData(options) {
 			title: 'bar-' + (si+1),
 			color: colors[si],
 			type: 'bar',
-			elclass: 'class-bar-' + si,
+			elclass: 'class-bar-' + (si+1),
 			values: []	
 		}
 		gdata.series.push(serie);
@@ -69,7 +69,7 @@ function generateRandomData(options) {
 			title: 'mark-' + (si+1),
 			color: colors[si],
 			type: 'mark',
-			elclass: 'class-mark-' + si,
+			elclass: 'class-mark-' + (si+1),
 			values: []	
 		}
 		gdata.series.push(serie);
@@ -80,7 +80,7 @@ function generateRandomData(options) {
 			title: 'line-' + (si+1),
 			color: colors[si],
 			type: 'line',
-			elclass: 'class-line-' + si,
+			elclass: 'class-line-' + (si+1),
 			values: []	
 		}
 		gdata.series.push(serie);
@@ -256,18 +256,18 @@ $(document).ready(function() {
 	var options = {
 		//context: true,
 		margin: {bottom: 50, left: 100},
-		timeserie: true,
+		timeserie: false,
 		sparse: false,
-		stacked: true,
+		stacked: false,
 		delayed: true,
-		israndom: false,
-		items: 10,
+		israndom: true,
+		items: 8,
 		showStacked: true,
 		showDelayed: true,
 		showControls: true,
 		numberOfAreaSeries: 0,
-		numberOfBarSeries: 2,
-		numberOfMarkSeries: 1,
+		numberOfBarSeries: 3,
+		numberOfMarkSeries: 3,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
@@ -275,14 +275,9 @@ $(document).ready(function() {
 		withContext: true,
 		incomplete: false,
 		interval: d3.time.day,
-		forceArea: function(d) {
-			return true;
-		},
-		forceLine: function(d) {
-			return true;
-		},
-		disContinuedLines: true,
+		disContinuedLines: false,
 		disContinuedAreas: true,
+		extendMarks: false
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);

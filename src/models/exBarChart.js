@@ -53,7 +53,7 @@ nv.models.exBarChart = function(options) {
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
         if (timeserie) {
-          xstr = dateFomatter(getX(e.point));
+          xstr = x;
         } else {
           xstr = x;
         }
@@ -114,13 +114,18 @@ nv.models.exBarChart = function(options) {
       //return;
       var left = e.pos[0]; // + ( offsetElement.offsetLeft || 0 ),
           top = e.pos[1] - 25; // + ( offsetElement.offsetTop || 0),
-          //x = xAxis.tickFormat()(bars.x()(e.point, e.pointIndex)),
-          //y = yAxis.tickFormat()(bars.y()(e.point, e.pointIndex)),
-          xvalue = e.xvalue;
           x = e.xvalue;
-          var y;
-          e.xformatted = xAxis.tickFormat()(x);
-          content = tooltip(e.series.key, x, y, e, chart);
+          xformatted = xAxis.tickFormat()(x);
+          d = e.dataMappedByX[x][e.seriesIndex];
+          y = bars.y()(d);
+          yformatted = y1Axis.tickFormat()(y);
+          //
+          e.x = x;
+          e.xformatted = xformatted;
+          e.y = y;
+          e.yformatted = yformatted;
+          //
+          content = tooltip(e.series.key, xformatted, yformatted, e, chart);
           nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
           return;
     }
@@ -128,8 +133,14 @@ nv.models.exBarChart = function(options) {
         top = e.pos[1] + ( offsetElement.offsetTop || 0),
         x = bars.x()(e.point, e.pointIndex);
         xformatted = xAxis.tickFormat()(x),
-        e.xformatted = xformatted;
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
+        yformatted = y;
+        //
+        e.x = x;
+        e.xformatted = xformatted;
+        e.y = y;
+        e.yformatted = yformatted;
+        //
         content = tooltip(e.series.key, x, y, e, chart);
 
     nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
@@ -197,8 +208,8 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Setup Scales
 
-      var dataForYAxis = seriesData.filter(function(d) { return !d.disabled && (d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
-      var dataForY2Axis = seriesData.filter(function(d) { return !d.disabled && d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
+      var dataForYAxis = seriesData.filter(function(d) { return /*!d.disabled && */(d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
+      var dataForY2Axis = seriesData.filter(function(d) { return /*!d.disabled && */d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
 
       x = bars.xScale();
       y1 = bars.yScale();
@@ -286,6 +297,9 @@ nv.models.exBarChart = function(options) {
       // Legend
 
       if (showLegend) {
+        if (timeserie) {
+          showStacked = false;
+        }
         legend.width(availableWidth - controlWidth());
         var legendData = seriesData.filter(function(d) { return !d.hidden });
  
@@ -310,9 +324,6 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Controls
 
-      if (timeserie && options.forceArea(data.series)) {
-        showStacked = false;
-      }
       if (showControls && (showStacked | showDelayed)) {
         var controlsData = [];
         if (showStacked) {
@@ -649,7 +660,12 @@ nv.models.exBarChart = function(options) {
         if (timeserie) {
           xAxis.ticks(timeserie_ticks, 1)
         } else {
-          xAxis.ticks(availableWidth / 100)
+          xAxis.tickValues(function() {
+            var n = Math.max(1, Math.round(x.domain().length / (availableWidth / 30))); 
+            return x.domain().filter(function(d, i) {
+              return (i % n == 0); 
+            });
+          });
         }
         /*
         xAxis
@@ -771,6 +787,9 @@ nv.models.exBarChart = function(options) {
                     type: d.type,
                     color: d.color,
                     formatOptions: d.formatOptions,
+                    hidden: d.hidden,
+                    disabled: d.disabled,
+                    series: d.series,
                     values: d.values.filter(function(d,i) {
                       return bars.x()(d,i) >= extent[0] && bars.x()(d,i) <= extent[1];
                     })
@@ -789,6 +808,9 @@ nv.models.exBarChart = function(options) {
                     type: d.type,
                     color: d.color,
                     formatOptions: d.formatOptions,
+                    hidden: d.hidden,
+                    disabled: d.disabled,
+                    series: d.series,
                     values: d.values.filter(function(d,i) {
                       return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
                     })

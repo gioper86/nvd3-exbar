@@ -13,7 +13,7 @@ nv.models.exBarChart = function(options) {
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
     , bars = nv.models.exBar(options)
-    , bars2 = withContext ? nv.models.exBar(options) : undefined
+    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false})) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
@@ -117,15 +117,20 @@ nv.models.exBarChart = function(options) {
           x = e.xvalue;
           xformatted = xAxis.tickFormat()(x);
           d = e.dataMappedByX[x][e.seriesIndex];
-          y = bars.y()(d);
-          yformatted = y1Axis.tickFormat()(y);
+          y = undefined;
+          yformatted = undefined;
+          if (typeof d !== "undefined") {
+            y = bars.y()(d);
+            yformatted = y1Axis.tickFormat()(y);
+          }
           //
           e.x = x;
           e.xformatted = xformatted;
           e.y = y;
           e.yformatted = yformatted;
           //
-          content = tooltip(e.series.key, xformatted, yformatted, e, chart);
+          var serieKey = (typeof e.series !== "undefined") ? e.series.key : "undefined";
+          content = tooltip(serieKey, xformatted, yformatted, e, chart);
           nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
           return;
     }
@@ -147,8 +152,6 @@ nv.models.exBarChart = function(options) {
   };
 
   //------------------------------------------------------------
-
-
 
   function chart(selection) {
     selection.each(function(data) {
@@ -454,7 +457,7 @@ nv.models.exBarChart = function(options) {
       var timeserie_ticks = function(start, stop, step) {
         //console.log('start, stop, step', start, stop, step);
         var cnt = interval.range(start, stop).length;
-        step = Math.max(1, (cnt / 20));
+        step = Math.max(1, (cnt / (availableWidth / 100)));
         var ticks1 = [];
         var d1 = start;
         while (d1 <= stop) {
@@ -468,7 +471,7 @@ nv.models.exBarChart = function(options) {
       var timeserie_ticks2 = function(start, stop, step) {
         //console.log('start, stop, step', start, stop, step);
         var cnt = interval.range(start, stop).length;
-        step = Math.max(1, (cnt / 7));
+        step = Math.max(1, (cnt / (availableWidth / 100)));
         var ticks1 = [];
         var d1 = start;
         while (d1 <= stop) {

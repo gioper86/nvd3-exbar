@@ -13074,6 +13074,7 @@ nv.models.exBar = function(options) {
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , forceX = []
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
     , stacked = false
@@ -14035,17 +14036,25 @@ var
         //console.log('minDate, maxDate, maxElements', minDate, maxDate, maxElements);
         //console.log('availableWidth, bandWidth, barWidth', availableWidth, bandWidth, barWidth);
         //x.nice(interval);
-        x.range([0, availableWidth]);
         //console.log(x(minDate), x(maxDate), x(interval.offset(minDate, 1)));
         //console.log(minDate.getTime(), maxDate.getTime(), interval.offset(minDate, 1).getTime());
         //console.log('x.domain()', x.domain());
+        x.range([0, availableWidth]);
       } else {
         x.domain(d3.merge(seriesData).map(function(d) { return d.x }))
         //x.domain(["02-Feb-12", "03-Feb-12", "04-Feb-12", "05-Feb-12", "06-Feb-12", "07-Feb-12", "08-Feb-12", "09-Feb-12", "10-Feb-12", "11-Feb-12"])
         x.rangeBands([0, availableWidth], .1);
       }
 
-      y.domain(yDomain || d3.extent(d3.merge(seriesData).map(function(d, i, j) { return d.y + ((stacked && (typeof d.y0 != "undefined")) ? d.y0 : 0) }).concat(forceY)))
+      if (typeof options.forceY !== "undefined") {
+        forceY = forceY.concat(options.forceY);
+      }
+      var calcYDomain = yDomain || d3.extent(d3.merge(seriesData).map(function(d, i, j) { return d.y + ((stacked && (typeof d.y0 != "undefined")) ? d.y0 : 0) }).concat(forceY))
+      if (typeof options.limitY !== "undefined") {
+        calcYDomain[0] = Math.max(calcYDomain[0], options.limitY[0]);
+        calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[1]);
+      }
+      y.domain(calcYDomain);
       y.range([availableHeight-3, 3]);
 
       //console.log('domain.y', y.domain());
@@ -14103,6 +14112,53 @@ var
       //store old scales for use in transitions on update
       x0 = x.copy();
       y0 = y.copy();
+
+      if (timeserie && options.withCursor) {
+        var c1 = $(this).parent();
+        //
+        c1.find("g.cursor").empty();
+        c1.find("rect.overlay").empty();
+        //
+        var container2 = d3.select(d3.select(this)[0].parentNode);
+        var cursorx = d3.select(c1[0]).append("g")
+          .attr("class", "cursor cursorx")
+          .style("display", "none");
+        cursorx.append("line")
+          .attr("class", "focus-line")
+          .attr("x1", 0)
+          .attr("x2", 0)
+          .attr("y1", 1)
+          .attr("y2", availableHeight-2);
+
+        var nvx = d3.select(c1[0]).append("rect")
+          .attr("class", "overlay")
+          .attr("width", availableWidth)
+          .attr("height", availableHeight)
+          .on("mouseover", function() { cursorx.style("display", null); })
+          .on("mouseout", function() {
+            cursorx.style("display", "none"); 
+            dispatch.elementMouseout({
+              data: data,
+              dataMappedByX: dataMappedByX,
+              e: d3.event
+            });
+          })
+          .on("mousemove", function() {
+            var mp = d3.mouse(this)[0];
+            //var x0 = x.invert(mp);
+            //console.log('mp', mp, x0);
+            /*
+            i = bisectDate(data, x0, 1),
+            d0 = data[i - 1],
+            d1 = data[i],
+            d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+            */
+            cursorx.attr("transform", "translate(" + mp + ",0" + ")");
+            //cursorx.select("text").text(formatCurrency(d.close));
+            mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);            
+          });
+      }
+
 
     });
 
@@ -14274,7 +14330,7 @@ nv.models.exBarChart = function(options) {
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
     , bars = nv.models.exBar(options)
-    , bars2 = withContext ? nv.models.exBar(options) : undefined
+    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false})) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
@@ -14378,15 +14434,20 @@ nv.models.exBarChart = function(options) {
           x = e.xvalue;
           xformatted = xAxis.tickFormat()(x);
           d = e.dataMappedByX[x][e.seriesIndex];
-          y = bars.y()(d);
-          yformatted = y1Axis.tickFormat()(y);
+          y = undefined;
+          yformatted = undefined;
+          if (typeof d !== "undefined") {
+            y = bars.y()(d);
+            yformatted = y1Axis.tickFormat()(y);
+          }
           //
           e.x = x;
           e.xformatted = xformatted;
           e.y = y;
           e.yformatted = yformatted;
           //
-          content = tooltip(e.series.key, xformatted, yformatted, e, chart);
+          var serieKey = (typeof e.series !== "undefined") ? e.series.key : "undefined";
+          content = tooltip(serieKey, xformatted, yformatted, e, chart);
           nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
           return;
     }
@@ -14408,8 +14469,6 @@ nv.models.exBarChart = function(options) {
   };
 
   //------------------------------------------------------------
-
-
 
   function chart(selection) {
     selection.each(function(data) {
@@ -14715,7 +14774,7 @@ nv.models.exBarChart = function(options) {
       var timeserie_ticks = function(start, stop, step) {
         //console.log('start, stop, step', start, stop, step);
         var cnt = interval.range(start, stop).length;
-        step = Math.max(1, (cnt / 20));
+        step = Math.max(1, (cnt / (availableWidth / 100)));
         var ticks1 = [];
         var d1 = start;
         while (d1 <= stop) {
@@ -14729,7 +14788,7 @@ nv.models.exBarChart = function(options) {
       var timeserie_ticks2 = function(start, stop, step) {
         //console.log('start, stop, step', start, stop, step);
         var cnt = interval.range(start, stop).length;
-        step = Math.max(1, (cnt / 7));
+        step = Math.max(1, (cnt / (availableWidth / 100)));
         var ticks1 = [];
         var d1 = start;
         while (d1 <= stop) {

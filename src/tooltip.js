@@ -23,7 +23,7 @@
     }
 
     container.innerHTML = content;
-    container.style.left = 0;
+    //container.style.left = 0;
     container.style.top = 0;
     container.style.opacity = 0;
 
@@ -98,7 +98,11 @@
     }
 
 
-    container.style.left = left+'px';
+    if (left + 200 >= windowWidth) {
+        container.style.right = '10px';
+    } else {
+        container.style.left = left+'px';
+    }
     container.style.top = top+'px';
     container.style.opacity = 1;
     container.style.position = 'absolute'; //fix scroll bar issue

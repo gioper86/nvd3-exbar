@@ -270,8 +270,8 @@ $(document).ready(function() {
 		sparse: false,
 		stacked: true,
 		delayed: true,
-		israndom: false	,
-		items: 8,
+		israndom: false,
+		items: 5,
 		showStacked: true,
 		showDelayed: false,
 		showControls: true,
@@ -284,13 +284,13 @@ $(document).ready(function() {
 		numberOfLineSeries2: 0,
 		withContext: true,
 		incomplete: false,
-		interval: d3.time.day,
+		interval: d3.time.month,
 		disContinuedLines: false,
 		disContinuedAreas: true,
 		extendMarks: false,
 		withCursor: true,
 		//forceY: [0, 20000]
-		limitY: [1000, 3000]
+		//limitY: [1000, 3000]
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);

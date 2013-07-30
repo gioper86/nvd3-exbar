@@ -142,7 +142,7 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     }
 
     container.innerHTML = content;
-    container.style.left = 0;
+    //container.style.left = 0;
     container.style.top = 0;
     container.style.opacity = 0;
 
@@ -217,7 +217,11 @@ d3.time.monthEnds = d3_time_range(d3.time.monthEnd, function(date) {
     }
 
 
-    container.style.left = left+'px';
+    if (left + 200 >= windowWidth) {
+        container.style.right = '10px';
+    } else {
+        container.style.left = left+'px';
+    }
     container.style.top = top+'px';
     container.style.opacity = 1;
     container.style.position = 'absolute'; //fix scroll bar issue
@@ -13185,20 +13189,19 @@ var
       // Setup containers and skeleton of chart
 
       var wrap = container.selectAll('g.nv-wrap.nv-stackedarea').data([dataAreas]);
-      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-stackedarea');
-      var defsEnter = wrapEnter.append('defs');
+      var wrapEnter = wrap.enter().append('g')
+        .attr('class', 'nvd3 nv-wrap nv-stackedarea')
+        .attr('style', 'clip-path: url(#nv-edge-clip-' + id + ')');
       var gEnter = wrapEnter.append('g');
       var g = wrap.select('g');
+
+      g.style('clip-path', 'url:(#nv-edge-clip-' + id + ')');
 
       gEnter.append('g').attr('class', 'nv-areaWrap');
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       //------------------------------------------------------------
-
-      defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + id)
-        .append('rect');
 
       wrap.select('#nv-edge-clip-' + id + ' rect')
         .attr('width', availableWidth)
@@ -13297,8 +13300,9 @@ var
     // Setup containers and skeleton of chart
 
     var wrap = container.selectAll('g.nv-wrap.nv-multibar').data([dataBars]);
-    var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-multibar');
-    var defsEnter = wrapEnter.append('defs');
+    var wrapEnter = wrap.enter().append('g')
+      .attr('class', 'nvd3 nv-wrap nv-multibar')
+      .attr('style', 'clip-path: url(#nv-edge-clip-' + id + ')');
     var gEnter = wrapEnter.append('g');
     var g = wrap.select('g')
 
@@ -13307,15 +13311,6 @@ var
     wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     //------------------------------------------------------------
-
-    defsEnter.append('clipPath')
-      .attr('id', 'nv-edge-clip-' + id)
-      .append('rect');
-    wrap.select('#nv-edge-clip-' + id + ' rect')
-      .attr('width', availableWidth)
-      .attr('height', availableHeight);
-
-    g.attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
     var groups = wrap.select('.nv-groups').selectAll('.nv-group')
       .data(function(d) { return d }, function(d) { return d.key });
@@ -13603,24 +13598,19 @@ var
     // Setup containers and skeleton of chart
 
     var wrap = container.selectAll('g.nv-wrap.nv-mark').data([dataMarks]);
-    var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-mark');
-    var defsEnter = wrapEnter.append('defs');
+    var wrapEnter = wrap.enter().append('g')
+      .attr('class', 'nvd3 nv-wrap nv-mark')
+      .attr('style', 'clip-path: url(#nv-edge-clip-' + id + ')');
     var gEnter = wrapEnter.append('g');
     var g = wrap.select('g')
+
+    g.style('clip-path', 'url:(#nv-edge-clip-' + id + ')');
 
     gEnter.append('g').attr('class', 'nv-groups');
 
     wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     //------------------------------------------------------------
-    defsEnter.append('clipPath')
-      .attr('id', 'nv-edge-clip-' + id)
-      .append('rect');
-    wrap.select('#nv-edge-clip-' + id + ' rect')
-      .attr('width', availableWidth)
-      .attr('height', availableHeight);
-
-    g   .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
 
     var groups = wrap.select('.nv-groups').selectAll('.nv-group')
       .data(function(d) { return d }, function(d) { return d.key });
@@ -13835,7 +13825,9 @@ var
     // Setup containers and skeleton of chart
 
     var wrap = container.selectAll('g.nv-wrap.nv-line').data([dataLines]);
-    var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-line');
+    var wrapEnter = wrap.enter().append('g')
+      .attr('class', 'nvd3 nv-wrap nv-line')
+      .attr('style', 'clip-path: url(#nv-edge-clip-' + id + ')');
     var defsEnter = wrapEnter.append('defs');
     var gEnter = wrapEnter.append('g');
     var g = wrap.select('g')
@@ -14081,6 +14073,13 @@ var
       //------------------------------------------------------------
 
 
+      var defsEnter = container.append('defs');
+      defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + id)
+        .append('rect');
+      container.select('#nv-edge-clip-' + id + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
       /*
       var maxElements = 0;
       for(var ei=0; ei<seriesData.length; ei+=1) {

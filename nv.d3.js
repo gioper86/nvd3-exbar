@@ -13273,7 +13273,8 @@ var
       path
         .attr('d', function(d) {
           return d3.svg.area2(bandWidth, interval, options.disContinuedAreas)
-            .x(function(d, i)  { return getXPos(getX(d, i)) })
+            .x(function(d, i) { return getXPos(getX(d, i)) })
+            .xnext(function(d, i) { return getXPos(interval.offset(getX(d, i), 1)) })
             .xdata(function(d, i) { return getX(d, i) })
             .y0(function(d) { return y(d.display.y0) })
             .y1(function(d) { return y(d.display.y + d.display.y0) })
@@ -13912,6 +13913,7 @@ var
           .defined(defined)
           .xdata(function(d, i) { return getX(d, i); })
           .x(function(d,i) { return getXPos(getX(d, i), bandWidth) })
+          .xnext(function(d, i) { return getXPos(interval.offset(getX(d, i), 1), bandWidth) })
           .y(function(d,i) { return y(getY(d,i)) })
       );
   }
@@ -14021,15 +14023,9 @@ var
         x.domain([minDate, maxDate2]);
         //
         var maxElements = timeRange.length;
-        //minDate = timeRange[0];
-        //maxDate = timeRange[timeRange.length-1];
         var bandWidth = Math.ceil((availableWidth / maxElements));
         var barWidth = bandWidth / Math.max(dataBars.length, 1);
-        //console.log('minDate, maxDate, maxElements', minDate, maxDate, maxElements);
         //console.log('availableWidth, bandWidth, barWidth', availableWidth, bandWidth, barWidth);
-        //x.nice(interval);
-        //console.log(x(minDate), x(maxDate), x(interval.offset(minDate, 1)));
-        //console.log(minDate.getTime(), maxDate.getTime(), interval.offset(minDate, 1).getTime());
         //console.log('x.domain()', x.domain());
         x.range([0, availableWidth]);
       } else {

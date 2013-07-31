@@ -15,6 +15,7 @@ nv.models.exBar = function(options) {
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
+    , fGetClass = function(d, i, j) { return (typeof d.elClass !== "undefined") ? d.elClass : '' }
     , forceX = []
     , forceY = [0] // 0 is forced by default.. this makes sense for the majority of bar graphs... user can always do chart.forceY([]) to remove
     , clipEdge = true
@@ -153,7 +154,7 @@ var
       path.enter()
         .append('path')
           .attr('class', function(d, i) { 
-            return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+            return 'nv-area nv-area-' + i + ' ' + fGetClass(d, i)
           })
         .style('stroke-opacity', 1)
         .style('fill-opacity', 1)
@@ -204,7 +205,7 @@ var
         .style('fill', function(d,i){ return d.color || color(d, i) })
         .style('stroke', function(d,i){ return d.color || color(d, i) })
         .attr('class', function(d, i) { 
-          return 'nv-area nv-area-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+          return 'nv-area nv-area-' + i + ' ' + fGetClass(d, i)
         });
       //d3.transition(path)
       path
@@ -278,7 +279,7 @@ var
 
     groups
       .attr('class', function(d,i) { 
-        return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        return 'nv-group nv-series-' + i  + ' ' + fGetClass(d, i)
       })
       .classed('hover', function(d) { return d.hover })
       .style('fill', function(d,i,j){ return color(d, i) })
@@ -586,7 +587,7 @@ var
 
     groups
       .attr('class', function(d,i) { 
-        return 'nv-group nv-series-' + i  + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        return 'nv-group nv-series-' + i  + ' ' + fGetClass(d, i)
       })
       .classed('hover', function(d) { return d.hover })
       .style('fill', function(d,i,j){ return color(d, i) })
@@ -703,9 +704,7 @@ var
     lines
       .attr('class', function(d,i,j) {
         var elClass = getY(d,i) < 0 ? 'nv-mark negative' : 'nv-mark positive';
-        if (typeof dataMarks[j].elClass != "undefined") {
-          elClass += ' ' + dataMarks[j].elClass;
-        }
+        elClass += ' ' + fGetClass(d, i, j, dataMappedByX);
         return elClass;
       })
       .attr('transform', function(d,i,j) {
@@ -785,7 +784,7 @@ var
       .remove();
     groups
       .attr('class', function(d,i) {
-        return 'nv-group nv-series-' + i + ' ' + (typeof d.elClass != 'undefined' ? d.elClass : '')
+        return 'nv-group nv-series-' + i + ' ' + fGetClass(d, i)
       })
       .classed('hover', function(d) { return d.hover })
       .style('fill', function(d,i){ return color(d, i) })
@@ -1113,6 +1112,12 @@ var
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
+    return chart;
+  };
+
+  chart.getClass = function(_) {
+    if (!arguments.length) return fGetClass;
+    fGetClass = _;
     return chart;
   };
 

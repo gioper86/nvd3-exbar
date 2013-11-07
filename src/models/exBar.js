@@ -894,7 +894,7 @@ var
 
       var dataVisible = data.filter(function(d, i, array) { return !d.hidden && !d.disabled });
       var dataBars = dataVisible.filter(function(d, i, array) { return d.type == 'bar' });
-      var dataMarks = dataVisible.filter(function(d, i, array) { return d.type == 'mark' });
+      var dataMarks = dataVisible.filter(function(d, i, array) { return d.type == 'mark2' });
       var dataLines = dataVisible.filter(function(d, i, array) { return d.type == 'line' });
       //console.log('data, dataBars, dataMarks', data, dataBars, dataMarks);
 

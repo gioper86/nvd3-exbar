@@ -13,6 +13,7 @@ nv.models.exBarChart = function(options) {
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
     , bars = nv.models.exBar(options)
+    , barsY2 = nv.models.exBar(options)
     , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false})) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
@@ -168,6 +169,12 @@ nv.models.exBarChart = function(options) {
       bars.delayed(delayed);
       bars.delay(delay);
       bars.drawTime(drawTime);
+
+      barsY2.stacked(state.stacked);
+      barsY2.delayed(delayed);
+      barsY2.delay(delay);
+      barsY2.drawTime(drawTime);
+
       if (withContext) {
         bars2.stacked(state.stacked);
         bars2.delayed(false);
@@ -212,11 +219,11 @@ nv.models.exBarChart = function(options) {
       // Setup Scales
 
       var dataForYAxis = seriesData.filter(function(d) { return /*!d.disabled && */(d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
-      var dataForY2Axis = seriesData.filter(function(d) { return /*!d.disabled && */d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
+      var dataForY2Axis = seriesData.filter(function(d) { return /*!d.disabled && */d.type == 'mark2' }); // removed the !d.disabled clause here to fix Issue #240
 
       x = bars.xScale();
       y1 = bars.yScale();
-      y2 = lines.yScale();
+      y2 = barsY2.yScale();
       if (withContext) {
         x2 = bars2.xScale();
         y3 = bars2.yScale();
@@ -387,7 +394,7 @@ nv.models.exBarChart = function(options) {
             return d.color || color(d, i);
           }));
 
-        lines
+        barsY2
           .width(availableWidth)
           .height(availableHeight1)
           .color(dataForY2Axis.map(function(d,i) {
@@ -402,7 +409,7 @@ nv.models.exBarChart = function(options) {
             .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
             
         d3.transition(barsWrap).call(bars);
-        d3.transition(linesWrap).call(lines);
+        d3.transition(linesWrap).call(barsY2);
       }
         
 
@@ -559,6 +566,7 @@ nv.models.exBarChart = function(options) {
           case 'Stacked':
             state.stacked = !state.stacked;
             bars.stacked(state.stacked);
+            barsY2.stacked(state.stacked);
             if (withContext) {
               bars2.stacked(state.stacked);
             }
@@ -566,6 +574,7 @@ nv.models.exBarChart = function(options) {
           case 'Delayed':
             delayed = !delayed;
             bars.delayed(delayed);
+            barsY2.delayed(delayed);
             if (withContext) {
               bars2.stacked(state.stacked);
             }
@@ -815,7 +824,7 @@ nv.models.exBarChart = function(options) {
                     disabled: d.disabled,
                     series: d.series,
                     values: d.values.filter(function(d,i) {
-                      return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                      return barsY2.x()(d,i) >= extent[0] && barsY2.x()(d,i) <= extent[1];
                     })
                   }
                 })
@@ -834,7 +843,7 @@ nv.models.exBarChart = function(options) {
         }
 
         d3.transition(focusBarsWrap).call(bars);
-        d3.transition(focusLinesWrap).call(lines);
+        d3.transition(focusLinesWrap).call(barsY2);
 
         initAxis(extent)
         
@@ -854,7 +863,7 @@ nv.models.exBarChart = function(options) {
         }));
 
 
-      lines
+      barsY2
         .width(availableWidth)
         .height(availableHeight1)
         .color(dataForY2Axis.map(function(d,i) {
@@ -917,6 +926,7 @@ nv.models.exBarChart = function(options) {
   chart.lines = lines;
   chart.lines2 = lines2;
   chart.bars = bars;
+  chart.barsY2 = barsY2;
   chart.bars2 = bars2;
   chart.xAxis = xAxis;
   chart.x2Axis = x2Axis;
@@ -932,7 +942,7 @@ nv.models.exBarChart = function(options) {
   chart.x = function(_) {
     if (!arguments.length) return getX;
     getX = _;
-    lines.x(_);
+    barsY2.x(_);
     bars.x(_);
     if (withContext) {
       lines2.x(_);
@@ -944,7 +954,7 @@ nv.models.exBarChart = function(options) {
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
-    lines.y(_);
+    barsY2.y(_);
     bars.y(_);
     if (withContext) {
       lines2.y(_);
@@ -1066,6 +1076,7 @@ nv.models.exBarChart = function(options) {
     if (!arguments.length) return interval;
     interval = _;
     bars.interval(interval);
+    barsY2.interval(interval);
     if (typeof bars2 != "undefined") {
       bars2.interval(interval);
     }

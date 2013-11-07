@@ -78,7 +78,7 @@ function generateRandomData(options) {
 			key: 'serie-mark' + (si+1),
 			title: 'mark-' + (si+1),
 			color: colors[si],
-			type: 'mark',
+			type: 'mark2',
 			elclass: 'class-mark-' + (si+1),
 			values: []	
 		}
@@ -101,6 +101,7 @@ function generateRandomData(options) {
 	var maxY = options.stacked ? (10000/gdata.series.length) : 10000;
 	var diff = 1;
 	var d = 0;
+
 	for (var di=0; di<options.items; ++di) {
 		d += diff;
 		if (options.sparse) {
@@ -108,6 +109,7 @@ function generateRandomData(options) {
 		}
 		date1 = options.interval.offset(date1, diff);
 		//console.log('date1: ', d3.time.format('%d-%b-%y')(date1));
+
 		for (var si=0; si<(options.incomplete ? options.seriesBars : gdata.series.length); ++si) {
 			var serie = gdata.series[si];
 			if (typeof serie != "undefined") {
@@ -121,6 +123,7 @@ function generateRandomData(options) {
 			}
 		}
 	}
+	console.log(gdata)
 	return gdata;
 }
 function checkAndFixTimeSeriesData(gdata, options) {
@@ -266,7 +269,7 @@ $(document).ready(function() {
 	var options = {
 		//context: true,
 		margin: {bottom: 50, left: 100},
-		timeserie: false,
+		timeserie: true,
 		sparse: false,
 		stacked: true,
 		delayed: true,
@@ -280,7 +283,7 @@ $(document).ready(function() {
 		numberOfMarkSeries: 1,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
-		numberOfMarkSeries2: 0,
+		numberOfMarkSeries2: 1,
 		numberOfLineSeries2: 0,
 		withContext: false,
 		//incomplete: false,

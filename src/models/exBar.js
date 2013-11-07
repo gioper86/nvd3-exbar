@@ -1061,6 +1061,17 @@ var
           .attr("y1", 1)
           .attr("y2", availableHeight-2);
 
+        var cursory = d3.select(c1[0]).append("g")
+          .attr("class", "cursor cursory")
+          //.style("display", "none");
+        cursory.append("line")
+          .attr("class", "focus-line")
+          .attr("x1", 1)
+          .attr("x2", availableWidth)
+          .attr("y1", 0)
+          .attr("y2", 0);
+
+
         var nvx = d3.select(c1[0]).append("rect")
           .attr("class", "overlay")
           .attr("width", availableWidth)
@@ -1076,6 +1087,8 @@ var
           })
           .on("mousemove", function() {
             var mp = d3.mouse(this)[0];
+            var mpy = d3.mouse(this)[1];
+
             //var x0 = x.invert(mp);
             //console.log('mp', mp, x0);
             /*
@@ -1085,8 +1098,12 @@ var
             d = x0 - d0.date > d1.date - x0 ? d1 : d0;
             */
             cursorx.attr("transform", "translate(" + mp + ",0" + ")");
+            cursory.attr("transform", "translate(0,"+ mpy +")");
+
             //cursorx.select("text").text(formatCurrency(d.close));
-            mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);            
+            mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);   
+            
+            //mouseLocationChangedOnArea(undefined, undefined, cursory[1], data, dataMappedByX);          
           });
       }
 

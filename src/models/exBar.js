@@ -78,6 +78,16 @@ var
     var pos = d3.mouse(el);
     //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    var nyvalue = y.invert(pos[1]-mainMargin.right);        
+
+    nyvalue = Math.round(nyvalue * 100) / 100
+
+    d3.select(".cursoryText")
+    .attr("dx",5)
+    .attr("dy",-5)
+    .text(nyvalue)
+
+    console.log(nyvalue)
     //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
       xvalue = nxvalue;
@@ -1070,6 +1080,11 @@ var
           .attr("x2", availableWidth)
           .attr("y1", 0)
           .attr("y2", 0);
+
+          d3.select("g.cursory").append("text")
+          .attr("dx",5)
+          .attr("dy",-5)
+          .attr("class","cursoryText")
 
 
         var nvx = d3.select(c1[0]).append("rect")

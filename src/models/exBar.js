@@ -13,7 +13,7 @@ nv.models.exBar = function(options) {
     , x = timeserie ? d3.time.scale() : d3.scale.ordinal()
     , y = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-    , getX = function(d) { return d.x }
+    , getX = function(d){ return d.x }
     , getY = function(d) { return d.y }
     , fGetClass = function(d, i, j) { return (typeof d.elClass !== "undefined") ? d.elClass : '' }
     , forceX = []
@@ -32,7 +32,8 @@ nv.models.exBar = function(options) {
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
     , interval = d3.time.day
     , dataMappedByX = {}
-    ;
+    , cursorYValueFormat = function(nyvalue) { return nyvalue; };
+
 
 var
   defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
@@ -78,16 +79,15 @@ var
     var pos = d3.mouse(el);
     //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
-    var nyvalue = y.invert(pos[1]-mainMargin.right);        
-
-    nyvalue = Math.round(nyvalue * 100) / 100
+    var nyvalue = y.invert(pos[1]-mainMargin.right);
+            
+    nyvalue = cursorYValueFormat(nyvalue)
 
     d3.select(".cursoryText")
     .attr("dx",5)
     .attr("dy",-5)
     .text(nyvalue)
 
-    console.log(nyvalue)
     //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
       xvalue = nxvalue;
@@ -1278,6 +1278,14 @@ var
     interval = _;
     return chart;
   };
+
+  chart.cursorYValueFormat = function(_) {
+    if (!arguments.length) return cursorYValueFormat;
+    cursorYValueFormat = _;
+    return chart;
+  };
+
+
 
   //============================================================
 

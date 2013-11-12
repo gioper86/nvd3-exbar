@@ -210,6 +210,11 @@ function drawChart(selector, gdata, options) {
 	chart.y2Axis.tickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
+
+	chart.cursorYValueFormat(function(value) {
+		return d3.format(",.2f")(value);
+	})	
+
 	//
 	if (typeof chart.x2Axis != "undefined") {
 		chart.x2Axis.tickFormat(function(d) { 

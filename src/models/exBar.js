@@ -1055,8 +1055,9 @@ var
       if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
         var c1 = $(this).parent();
         //
-        c1.find("g.cursor").empty();
-        c1.find("rect.overlay").empty();
+        d3.select(".cursory").remove()
+        d3.select(".cursorx").remove()
+        d3.select("rect.overlay").remove()
         //
         var container2 = d3.select(d3.select(this)[0].parentNode);
 

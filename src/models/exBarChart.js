@@ -35,7 +35,7 @@ nv.models.exBarChart = function(options) {
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
-    ;
+    , cursorYValueFormat = function(value) { return value };
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
@@ -168,6 +168,8 @@ nv.models.exBarChart = function(options) {
       bars.delayed(delayed);
       bars.delay(delay);
       bars.drawTime(drawTime);
+      bars.cursorYValueFormat(cursorYValueFormat);
+
       if (withContext) {
         bars2.stacked(state.stacked);
         bars2.delayed(false);
@@ -1077,6 +1079,12 @@ nv.models.exBarChart = function(options) {
     brush.extent(_);
     return chart;    
   }
+
+   chart.cursorYValueFormat = function(_) {
+    if (!arguments.length) return cursorYValueFormat;
+    cursorYValueFormat = _;
+    return chart;
+  }; 
 
   //============================================================
 

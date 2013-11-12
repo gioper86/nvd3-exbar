@@ -210,6 +210,11 @@ function drawChart(selector, gdata, options) {
 	chart.y2Axis.tickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
+
+	chart.cursorYValueFormat(function(value) {
+		return d3.format(",.2f")(value);
+	})	
+
 	//
 	if (typeof chart.x2Axis != "undefined") {
 		chart.x2Axis.tickFormat(function(d) { 
@@ -266,7 +271,7 @@ $(document).ready(function() {
 	var options = {
 		//context: true,
 		margin: {bottom: 50, left: 100},
-		timeserie: false,
+		timeserie: true,
 		sparse: false,
 		stacked: true,
 		delayed: true,
@@ -289,6 +294,8 @@ $(document).ready(function() {
 		disContinuedAreas: true,
 		extendMarks: false,
 		withCursor: true,
+		withHorizontalCursor: true,
+		showHorizontalCursorText: true
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
 	}

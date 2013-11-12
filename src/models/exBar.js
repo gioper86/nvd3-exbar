@@ -13,7 +13,7 @@ nv.models.exBar = function(options) {
     , x = timeserie ? d3.time.scale() : d3.scale.ordinal()
     , y = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
-    , getX = function(d) { return d.x }
+    , getX = function(d){ return d.x }
     , getY = function(d) { return d.y }
     , fGetClass = function(d, i, j) { return (typeof d.elClass !== "undefined") ? d.elClass : '' }
     , forceX = []
@@ -32,7 +32,8 @@ nv.models.exBar = function(options) {
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
     , interval = d3.time.day
     , dataMappedByX = {}
-    ;
+    , cursorYValueFormat = function(nyvalue) { return nyvalue; };
+
 
 var
   defined = function(d,i) { return !isNaN(getY(d,i)) && getY(d,i) !== null } // allows a line to be not continuous when it is not defined
@@ -78,6 +79,13 @@ var
     var pos = d3.mouse(el);
     //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+
+
+    var nyvalue = y.invert(pos[1]-mainMargin.right);        
+    nyvalue = cursorYValueFormat(nyvalue)
+
+    d3.select(".cursoryText").text(nyvalue)
+
     //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
       xvalue = nxvalue;
@@ -1044,30 +1052,59 @@ var
       x0 = x.copy();
       y0 = y.copy();
 
-      if (timeserie && options.withCursor) {
+      if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
         var c1 = $(this).parent();
         //
-        c1.find("g.cursor").empty();
-        c1.find("rect.overlay").empty();
+        d3.select(".cursory").remove()
+        d3.select(".cursorx").remove()
+        d3.select("rect.overlay").remove()
         //
         var container2 = d3.select(d3.select(this)[0].parentNode);
+
         var cursorx = d3.select(c1[0]).append("g")
           .attr("class", "cursor cursorx")
           .style("display", "none");
-        cursorx.append("line")
-          .attr("class", "focus-line")
-          .attr("x1", 0)
-          .attr("x2", 0)
-          .attr("y1", 1)
-          .attr("y2", availableHeight-2);
+
+        var cursory = d3.select(c1[0]).append("g")
+          .attr("class", "cursor cursory")
+          .style("display", "none"); 
+
+        if(options.withCursor) {      
+            cursorx.append("line")
+              .attr("class", "focus-line")
+              .attr("x1", 0)
+              .attr("x2", 0)
+              .attr("y1", 1)
+              .attr("y2", availableHeight-2);
+        } 
+
+        if(options.withHorizontalCursor) { 
+          cursory.append("line")
+            .attr("class", "focus-line")
+            .attr("x1", 1)
+            .attr("x2", availableWidth)
+            .attr("y1", 0)
+            .attr("y2", 0);
+
+            if(options.showHorizontalCursorText) {
+              d3.select("g.cursory").append("text")
+              .attr("dx",5)
+              .attr("dy",-5)
+              .attr("class","cursoryText")
+            }
+        } 
 
         var nvx = d3.select(c1[0]).append("rect")
           .attr("class", "overlay")
           .attr("width", availableWidth)
           .attr("height", availableHeight)
-          .on("mouseover", function() { cursorx.style("display", null); })
+          .on("mouseover", function() { 
+            cursorx.style("display", null);
+            cursory.style("display", null);
+          })
           .on("mouseout", function() {
-            cursorx.style("display", "none"); 
+            cursorx.style("display", "none");
+            cursory.style("display", "none"); 
             dispatch.elementMouseout({
               data: data,
               dataMappedByX: dataMappedByX,
@@ -1076,18 +1113,14 @@ var
           })
           .on("mousemove", function() {
             var mp = d3.mouse(this)[0];
-            //var x0 = x.invert(mp);
-            //console.log('mp', mp, x0);
-            /*
-            i = bisectDate(data, x0, 1),
-            d0 = data[i - 1],
-            d1 = data[i],
-            d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-            */
+            var mpy = d3.mouse(this)[1];
+
             cursorx.attr("transform", "translate(" + mp + ",0" + ")");
-            //cursorx.select("text").text(formatCurrency(d.close));
-            mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);            
-          });
+            cursory.attr("transform", "translate(0,"+ mpy +")");
+
+            mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);   
+                     
+          });  
       }
 
 
@@ -1246,6 +1279,14 @@ var
     interval = _;
     return chart;
   };
+
+  chart.cursorYValueFormat = function(_) {
+    if (!arguments.length) return cursorYValueFormat;
+    cursorYValueFormat = _;
+    return chart;
+  };
+
+
 
   //============================================================
 

@@ -79,14 +79,12 @@ var
     var pos = d3.mouse(el);
     //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
-    var nyvalue = y.invert(pos[1]-mainMargin.right);
-            
+
+
+    var nyvalue = y.invert(pos[1]-mainMargin.right);        
     nyvalue = cursorYValueFormat(nyvalue)
 
-    d3.select(".cursoryText")
-    .attr("dx",5)
-    .attr("dy",-5)
-    .text(nyvalue)
+    d3.select(".cursoryText").text(nyvalue)
 
     //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
@@ -1054,46 +1052,58 @@ var
       x0 = x.copy();
       y0 = y.copy();
 
-      if (timeserie && options.withCursor) {
+      if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
         var c1 = $(this).parent();
         //
         c1.find("g.cursor").empty();
         c1.find("rect.overlay").empty();
         //
         var container2 = d3.select(d3.select(this)[0].parentNode);
+
         var cursorx = d3.select(c1[0]).append("g")
           .attr("class", "cursor cursorx")
           .style("display", "none");
-        cursorx.append("line")
-          .attr("class", "focus-line")
-          .attr("x1", 0)
-          .attr("x2", 0)
-          .attr("y1", 1)
-          .attr("y2", availableHeight-2);
 
         var cursory = d3.select(c1[0]).append("g")
           .attr("class", "cursor cursory")
-          //.style("display", "none");
-        cursory.append("line")
-          .attr("class", "focus-line")
-          .attr("x1", 1)
-          .attr("x2", availableWidth)
-          .attr("y1", 0)
-          .attr("y2", 0);
+          .style("display", "none"); 
 
-          d3.select("g.cursory").append("text")
-          .attr("dx",5)
-          .attr("dy",-5)
-          .attr("class","cursoryText")
+        if(options.withCursor) {      
+            cursorx.append("line")
+              .attr("class", "focus-line")
+              .attr("x1", 0)
+              .attr("x2", 0)
+              .attr("y1", 1)
+              .attr("y2", availableHeight-2);
+        } 
 
+        if(options.withHorizontalCursor) { 
+          cursory.append("line")
+            .attr("class", "focus-line")
+            .attr("x1", 1)
+            .attr("x2", availableWidth)
+            .attr("y1", 0)
+            .attr("y2", 0);
+
+            if(options.showHorizontalCursorText) {
+              d3.select("g.cursory").append("text")
+              .attr("dx",5)
+              .attr("dy",-5)
+              .attr("class","cursoryText")
+            }
+        } 
 
         var nvx = d3.select(c1[0]).append("rect")
           .attr("class", "overlay")
           .attr("width", availableWidth)
           .attr("height", availableHeight)
-          .on("mouseover", function() { cursorx.style("display", null); })
+          .on("mouseover", function() { 
+            cursorx.style("display", null);
+            cursory.style("display", null);
+          })
           .on("mouseout", function() {
-            cursorx.style("display", "none"); 
+            cursorx.style("display", "none");
+            cursory.style("display", "none"); 
             dispatch.elementMouseout({
               data: data,
               dataMappedByX: dataMappedByX,
@@ -1104,22 +1114,12 @@ var
             var mp = d3.mouse(this)[0];
             var mpy = d3.mouse(this)[1];
 
-            //var x0 = x.invert(mp);
-            //console.log('mp', mp, x0);
-            /*
-            i = bisectDate(data, x0, 1),
-            d0 = data[i - 1],
-            d1 = data[i],
-            d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-            */
             cursorx.attr("transform", "translate(" + mp + ",0" + ")");
             cursory.attr("transform", "translate(0,"+ mpy +")");
 
-            //cursorx.select("text").text(formatCurrency(d.close));
             mouseLocationChangedOnArea(undefined, undefined, cursorx[0], data, dataMappedByX);   
-            
-            //mouseLocationChangedOnArea(undefined, undefined, cursory[1], data, dataMappedByX);          
-          });
+                     
+          });  
       }
 
 

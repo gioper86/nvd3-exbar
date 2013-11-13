@@ -80,11 +80,10 @@ var
     //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
 
-
     var nyvalue = y.invert(pos[1]-mainMargin.right);        
     nyvalue = cursorYValueFormat(nyvalue)
 
-    d3.select(".cursoryText").text(nyvalue)
+    $(g).closest('svg').find(".cursoryText").text(nyvalue)
 
     //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
@@ -1055,10 +1054,10 @@ var
       if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
         var c1 = $(this).parent();
         //
-        d3.select(".cursory").remove()
-        d3.select(".cursorx").remove()
-        d3.select("rect.overlay").remove()
+        c1.find("g.cursor").remove();
+        c1.find("rect.overlay").remove();
         //
+
         var container2 = d3.select(d3.select(this)[0].parentNode);
 
         var cursorx = d3.select(c1[0]).append("g")
@@ -1087,7 +1086,7 @@ var
             .attr("y2", 0);
 
             if(options.showHorizontalCursorText) {
-              d3.select("g.cursory").append("text")
+              cursory.append("text")
               .attr("dx",5)
               .attr("dy",-5)
               .attr("class","cursoryText")

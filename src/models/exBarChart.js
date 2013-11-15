@@ -13,7 +13,7 @@ nv.models.exBarChart = function(options) {
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
     , bars = nv.models.exBar(options)
-    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false})) : undefined
+    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false, withHorizontalCursor: false, showHorizontalCursorText: false})) : undefined
     , xAxis = nv.models.axis()
     , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
@@ -131,7 +131,9 @@ nv.models.exBarChart = function(options) {
           //
           var serieKey = (typeof e.series !== "undefined") ? e.series.key : "undefined";
           content = tooltip(serieKey, xformatted, yformatted, e, chart);
-          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+          if (typeof content !== "undefined") { 
+            nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+          }
           return;
     }
     var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
@@ -147,8 +149,9 @@ nv.models.exBarChart = function(options) {
         e.yformatted = yformatted;
         //
         content = tooltip(e.series.key, x, y, e, chart);
-
-    nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+        if (typeof content !== "undefined") { 
+          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+        }
   };
 
   //------------------------------------------------------------
@@ -185,6 +188,11 @@ nv.models.exBarChart = function(options) {
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - height2,
           availableHeight2 = height2 - margin2.top - margin2.bottom;
+
+      if (availableWidth < 10 || availableHeight1 < 10) {
+        return;
+      }
+
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.

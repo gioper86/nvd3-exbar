@@ -1,5 +1,5 @@
 
-nv.models.exBarChart = function(options) {
+nv.models.multiExBarChart = function(options) {
   if (typeof options == "undefined") {
     options = {}
   }
@@ -10,14 +10,14 @@ nv.models.exBarChart = function(options) {
 
   var timeserie = typeof options.timeserie == "undefined" ? false : options.timeserie
     , withContext = timeserie ? (typeof options.withContext == "undefined" ? true : options.withContext) : false
-    , lines = nv.models.line()
+    , lines = []
     , lines2 = withContext ? nv.models.line() : undefined
-    , bars = nv.models.exBar(options)
+    , bars = []
     , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false, withHorizontalCursor: false, showHorizontalCursorText: false})) : undefined
-    , xAxis = nv.models.axis()
+    , xAxis = []
     , x2Axis = withContext ? nv.models.axis() : undefined
-    , y1Axis = nv.models.axis()
-    , y2Axis = nv.models.axis()
+    , y1Axis = [] 
+    , y2Axis = []
     , y3Axis = withContext ? nv.models.axis() : undefined
     , y4Axis = withContext ? nv.models.axis() : undefined
     , legend = nv.models.legend()
@@ -29,13 +29,35 @@ nv.models.exBarChart = function(options) {
     , reduceXTicks = false // if false a tick will show for every data point
     , staggerLabels = false
     , rotateLabels = 0
-    , interval = d3.time.day
+    , interval = []
     , controls = nv.models.legend()
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     , cursorYValueFormat = function(value) { return value };
+
+
+
+    for(var i=0;i<options.numberOfCharts;i++) { 
+      bars.push( nv.models.exBar(options) ) 
+      lines.push( nv.models.line() )
+      xAxis.push( nv.models.axis() )
+      y1Axis.push( nv.models.axis() )  
+      y2Axis.push( nv.models.axis() )
+      interval.push( d3.time.day ) 
+    };
+
+/*    , lines = nv.models.line()
+    , lines2 = withContext ? nv.models.line() : undefined
+    , bars = nv.models.exBar(options)
+    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false, withHorizontalCursor: false, showHorizontalCursorText: false})) : undefined
+    , xAxis = nv.models.axis()
+    , x2Axis = withContext ? nv.models.axis() : undefined
+    , y1Axis = nv.models.axis()
+    , y2Axis = nv.models.axis()
+*/
+
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
@@ -72,34 +94,37 @@ nv.models.exBarChart = function(options) {
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     ;
 
-  lines
-    .clipEdge(true)
-    ;
-  xAxis
-    .orient('bottom')
-    .tickPadding(5)
-    ;
-  y1Axis
-    .orient('left')
-    ;
-  y2Axis
-    .orient('right')
-      ;
-  if (withContext) {
-    lines2
-      .interactive(false)
-      ;
-    x2Axis
-      .orient('bottom')
-      .tickPadding(5)
-      ;
-    y3Axis
-      .orient('left')
-      ;
-    y4Axis
-      .orient('right')
-      ;  
-  }
+    for(var i=0;i<options.numberOfCharts;i++) { 
+      lines[i]
+        .clipEdge(true)
+        ;
+      xAxis[i]
+        .orient('bottom')
+        .tickPadding(5)
+        ;
+      y1Axis[i]
+        .orient('left')
+        ;
+      y2Axis[i]
+        .orient('right')
+          ;
+    }
+    
+    if (withContext) {
+      lines2
+        .interactive(false)
+        ;
+      x2Axis
+        .orient('bottom')
+        .tickPadding(5)
+        ;
+      y3Axis
+        .orient('left')
+        ;
+      y4Axis
+        .orient('right')
+        ;  
+    }
   
   //============================================================
 
@@ -193,9 +218,6 @@ nv.models.exBarChart = function(options) {
         return;
       }
 
-      chart.availableWidth = availableWidth
-      chart.availableHeight1 = availableHeight1
-      chart.availableHeight2 = availableHeight2
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -895,27 +917,31 @@ nv.models.exBarChart = function(options) {
   // Event Handling/Dispatching (out of chart's scope)
   //------------------------------------------------------------
 
-  lines.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-    dispatch.tooltipShow(e);
-  });
+  for(var i=0;i<options.numberOfCharts;i++) { 
 
-  lines.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
+      lines[i].dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
 
-  bars.dispatch.on('elementMouseover.tooltip', function(e) {
-    e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-    dispatch.tooltipShow(e);
-  });
 
-  bars.dispatch.on('elementMouseout.tooltip', function(e) {
-    dispatch.tooltipHide(e);
-  });
+      lines[i].dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
 
-  dispatch.on('tooltipHide', function() {
-    if (tooltips) nv.tooltip.cleanup();
-  });
+      bars[i].dispatch.on('elementMouseover.tooltip', function(e) {
+        e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+        dispatch.tooltipShow(e);
+      });
+
+      bars[i].dispatch.on('elementMouseout.tooltip', function(e) {
+        dispatch.tooltipHide(e);
+      });
+
+      dispatch.on('tooltipHide', function() {
+        if (tooltips) nv.tooltip.cleanup();
+      });
+  }
 
   //============================================================
 
@@ -966,14 +992,14 @@ nv.models.exBarChart = function(options) {
     return chart;
   };
 
-  chart.margin = function(_) {
+  chart.margin = function(_,chartIndex) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     //
-    bars.mainMargin(margin);
+    bars[chartIndex].mainMargin(margin);
     if (typeof bars2 !== "undefined") {
       bars.mainMargin(margin);
     }
@@ -1075,10 +1101,10 @@ nv.models.exBarChart = function(options) {
     return chart;
   };
 
-  chart.interval = function(_) {
-    if (!arguments.length) return interval;
-    interval = _;
-    bars.interval(interval);
+  chart.interval = function(_,chartIndex) {
+    if (!arguments.length) return interval[chartIndex];
+    interval[chartIndex] = _;
+    bars[chartIndex].interval(interval);
     if (typeof bars2 != "undefined") {
       bars2.interval(interval);
     }

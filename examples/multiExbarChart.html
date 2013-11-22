@@ -15,8 +15,8 @@ text {
   font: 12px sans-serif;
 }
 
-#chart1 {
-  height: 500px;
+.chartsContainer {
+  height: 300px;
   min-width: 200px;
   min-height: 200px;
 /*
@@ -25,6 +25,8 @@ text {
   of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
 */
 }
+
+
 
 .overlay {
   fill: none;
@@ -51,6 +53,7 @@ text {
 <script src="../src/models/line.js"></script>
 <script src="../src/models/exBar.js"></script>
 <script src="../src/models/exBarChart.js"></script>
+<script src="../src/models/exbarJustContext.js"></script>
 <script src="stream_layers.js"></script>
 <script type="text/javascript">
 
@@ -257,6 +260,8 @@ function drawChart(selector, gdata, options) {
 		  .attr('transform', function(d,i,j) { return 'translate (-10, 25) rotate(-90 0,0)' }) ;
 		*/
 	});
+
+
 	//
 	/*
 	chart.tooltip(function(key, x, y, e, graph) {
@@ -266,6 +271,82 @@ function drawChart(selector, gdata, options) {
 	*/
 	return chart;
 }
+
+
+function drawContext(selector, gdata, options, chartsList) {
+	console.log('gdata:', gdata);
+	//
+	var chartContext = nv.models.exBarJustContextChart(options,chartsList);
+	//
+	//chart.showControls(false);
+	chartContext.showLegend(true);
+	chartContext.stacked(options.stacked);
+	chartContext.delayed(options.delayed);
+	chartContext.interval(options.interval);
+	chartContext.showStacked(options.showStacked);
+	chartContext.showDelayed(options.showDelayed);
+
+
+	chartContext.margin(options.margin);
+
+	chartContext.x(function(d) {
+		if (options.timeserie) {
+			if (typeof d[0] != "undefined")
+				return options.interval(new Date(d[0]));
+		} else {
+			if (typeof d[0] != "undefined") {
+				return options.interval(new Date(d[0]))
+				//return d[0];
+			}
+			if (typeof d.label != "undefined")
+				return d.label;
+		}
+		return 0;
+	});
+	chartContext.y(function(d) {
+		if (options.timeserie) {
+			if (typeof d[1] != "undefined")
+				return d[1];
+		} else {
+			if (typeof d[1] != "undefined") {
+				return d[1];
+			}
+			if (typeof d.value != "undefined")
+				return d.value;
+		}
+		return 0;
+	});
+
+
+	chartContext.x2Axis.tickFormat(function(d) { 
+		if (options.timeserie) {
+			//return chart.bars.xScale().tickFormat()(new Date(d));
+			return d3.time.format('%d-%m-%y')(d)
+		} else {
+			return d3.time.format('%d-%m-%y')(d)
+			//return d3.format("d")(d);
+		}
+	});	
+
+	var t1 = new Date();
+	d3.select(selector)
+		.datum(gdata)
+		.transition().duration(500)
+		.call(chartContext)
+		.each('end', function(d) {
+			var t2 = new Date();
+			console.log('rendering: ' + (t2 - t1));
+		})
+		;
+	//
+	nv.utils.windowResize(chartContext.update);
+	//
+	return chartContext;
+}
+
+
+
+
 
 $(document).ready(function() {
 	var options = {
@@ -287,7 +368,7 @@ $(document).ready(function() {
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
-		withContext: true,
+		withContext: false,
 		//incomplete: false,
 		interval: d3.time.month,
 		disContinuedLines: false,
@@ -302,7 +383,15 @@ $(document).ready(function() {
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
 	//console.log('data-ready ...');
-	drawChart("#chart1", gdata, options)	
+
+	var opt2 = $.extend({}, options, {israndom:true})
+	console.log(opt2)
+	var gdata2 = generateRandomData(opt2);
+
+	var firstChart = drawChart("#chart1", gdata, options)
+	var secondChart = drawChart("#chart2", gdata2, options)		
+	drawContext("#contextChart", gdata, options,[firstChart,secondChart])	
+
 })
 
 lastWeek = function() {
@@ -347,8 +436,17 @@ lastYear = function(years) {
 	</div>
 
 	<div id="chart-container" width="100%" style="padding: 10px 25px 10px 25px;">
-		<svg id="chart1">
+		<!--
+		<svg id="chartsContainer">
+			<g id="chart1"></g>
+			<g id="chart2"></g>
+			<g id="contextChart"></g>
 		</svg>
+		-->
+		<svg class="chartsContainer" id="chart1"></svg>
+		<svg class="chartsContainer" id="chart2"></svg>
+		<svg id="contextChart"></svg>
+
  	</div>
 
 </body>

@@ -21,7 +21,7 @@ nv.models.exBarMultiChart = function(options) {
     mainChart.contextHeight(contextHeight)
 
     contextChart.height(contextHeight)
-    
+    contextChart.chartUnderControl(mainChart);
 
 
     /*contextChart.chartID(1)
@@ -29,6 +29,8 @@ nv.models.exBarMultiChart = function(options) {
 
     mainChart(selection)
   	contextChart(selection)
+
+    console.log(mainChart.dataForYAxis)
   }
 
   //============================================================

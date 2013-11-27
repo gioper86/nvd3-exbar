@@ -30,7 +30,9 @@ nv.models.exBarContextChart = function(options) {
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
-    , cursorYValueFormat = function(value) { return value };
+    , cursorYValueFormat = function(value) { return value }
+    , chartUnderControl;
+
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
@@ -144,7 +146,7 @@ nv.models.exBarContextChart = function(options) {
 
       x2 = bars.xScale();
       y3 = bars.yScale();
-      y4 = lines.yScale();        
+      y4 = lines.yScale(); 
 
       var series1 = dataForYAxis
         .map(function(d) {
@@ -239,12 +241,8 @@ nv.models.exBarContextChart = function(options) {
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);
-    
-        
-      //------------------------------------------------------------
-
-
-
+   
+       
       //------------------------------------------------------------
       // Setup Brush
 
@@ -328,9 +326,6 @@ nv.models.exBarContextChart = function(options) {
       } else {          
         xAxis.ticks(availableWidth / 100);
       }
-      //xAxis.showMaxMin(timeserie);
-
-      //xAxis.ticks(interval.range, 1);                      
 
       g.select('.nv-context .nv-x.nv-axis')
         .attr('transform', 'translate(0,' + y3.range()[0] + ')');
@@ -431,113 +426,9 @@ nv.models.exBarContextChart = function(options) {
           });
       }
 
-      function initAxis(extent) {
-        /*
-        if (typeof extent == "undefined") {
-          extent = x.domain();
-        }
-        //------------------------------------------------------------
-        // Update Main (Focus) X Axis
-
-        // Setup Axes
-
-        xAxis.showMaxMin(timeserie);
-        xAxis
-          .scale(x)
-          .tickSize(-availableHeight1, 0);
-        if (timeserie) {
-          xAxis.ticks(timeserie_ticks, 1)
-        } else {
-          xAxis.tickValues(function() {
-            var n = Math.max(1, Math.round(x.domain().length / (availableWidth / 30))); 
-            return x.domain().filter(function(d, i) {
-              return (i % n == 0); 
-            });
-          });
-        }
-        
-        g.select('.nv-focus .nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + availableHeight1 + ')');
-
-        d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
-
-        var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
-
-        xTicks
-            .selectAll('line, text')
-            .style('opacity', 1)
-
-        if (staggerLabels) {
-            var getTranslate = function(x,y) {
-                return "translate(" + x + "," + y + ")";
-            };
-
-            var staggerUp = 5, staggerDown = 17;  //pixels to stagger by
-            // Issue #140
-            xTicks
-              .selectAll("text")
-              .attr('transform', function(d,i,j) { 
-                  return  getTranslate(0, (j % 2 == 0 ? staggerUp : staggerDown));
-                });
-
-            var totalInBetweenTicks = d3.selectAll(".nv-x.nv-axis .nv-wrap g g text")[0].length;
-            g.selectAll(".nv-x.nv-axis .nv-axisMaxMin text")
-              .attr("transform", function(d,i) {
-                  return getTranslate(0, (i === 0 || totalInBetweenTicks % 2 !== 0) ? staggerDown : staggerUp);
-              });
-        }
-
-
-        if (reduceXTicks)
-          xTicks
-            .filter(function(d,i) {
-                return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
-              })
-            .selectAll('text, line')
-            .style('opacity', 0);
-
-        if(rotateLabels)
-          xTicks
-            .selectAll('text')
-            .attr('transform', 'rotate(' + rotateLabels + ' 0,0)')
-            .attr('text-anchor200', rotateLabels > 0 ? 'start' : 'end');
-        
-        g.select('.nv-x.nv-axis').selectAll('g.nv-axisMaxMin text')
-            .style('opacity', 1);
-                
-        //------------------------------------------------------------
-        // Setup and Update Main (Focus) Y Axes
-*/        
-
-        y1Axis
-          .scale(y3)
-          .ticks( availableHeight1 / 36 )
-          .tickSize(-availableWidth, 0);
-
-        g.select('.nv-focus .nv-y1.nv-axis')
-          .style('opacity', dataForYAxis.length ? 1 : 0);
-
-
-        y2Axis
-          .scale(y4)
-          .ticks( availableHeight1 / 36 )
-          .tickSize(dataForYAxis.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
-
-        g.select('.nv-focus .nv-y2.nv-axis')
-          .style('opacity', dataFory2Axis.length ? 1 : 0)
-          .attr('transform', 'translate(' + x2.range()[1] + ',0)');
-
-        d3.transition(g.select('.nv-focus .nv-y1.nv-axis'))
-            .call(y1Axis);
-        d3.transition(g.select('.nv-focus .nv-y2.nv-axis'))
-            .call(y2Axis);
-            
-
-      }
 
       function onBrush() {
-        /*
+
         //console.log('onBrush ...');
         var bextent = brush.extent();
         brushExtent = brush.empty() ? null : brush.extent();
@@ -546,15 +437,14 @@ nv.models.exBarContextChart = function(options) {
 
         updateBrushBG();
 
-        //console.log('onBrush - extent', extent);
-
-        //
-
         //------------------------------------------------------------
         // Prepare Main (Focus) Bars and Lines
 
-        var focusBarsWrap = g.select('.nv-focus .nv-barsWrap')
-            .datum(!dataForYAxis.length ? [{values:[]}] :
+        var elem = d3.select("#"+ chartUnderControl.container.id).select(".nv-linePlusBar"+chartUnderControl.chartID())
+ 
+
+        var focusBarsWrap = elem.select('.nv-focus .nv-barsWrap')
+            .datum(!chartUnderControl.dataForYAxis.length ? [{values:[]}] :
               dataForYAxis
                 .map(function(d,i) {
                   return {
@@ -568,13 +458,13 @@ nv.models.exBarContextChart = function(options) {
                     disabled: d.disabled,
                     series: d.series,
                     values: d.values.filter(function(d,i) {
-                      return bars.x()(d,i) >= extent[0] && bars.x()(d,i) <= extent[1];
+                      return chartUnderControl.bars.x()(d,i) >= extent[0] && chartUnderControl.bars.x()(d,i) <= extent[1];
                     })
                   }
                 })
             );
         
-        var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
+        var focusLinesWrap = elem.select('.nv-focus .nv-linesWrap')
             .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] :
               dataFory2Axis
                 .map(function(d,i) {
@@ -589,7 +479,7 @@ nv.models.exBarContextChart = function(options) {
                     disabled: d.disabled,
                     series: d.series,
                     values: d.values.filter(function(d,i) {
-                      return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
+                      return chartUnderControl.lines.x()(d,i) >= extent[0] && chartUnderControl.lines.x()(d,i) <= extent[1];
                     })
                   }
                 })
@@ -601,21 +491,15 @@ nv.models.exBarContextChart = function(options) {
         //------------------------------------------------------------
         // Update Main (Focus) X Axis
 
-        if (dataForYAxis.length) {
-          x = bars.xScale();
+        if (chartUnderControl.dataForYAxis.length) {
+          x = chartUnderControl.bars.xScale();
         } else {
-          x = lines.xScale();
+          x = chartUnderControl.lines.xScale();
         }
 
-        d3.transition(focusBarsWrap).call(bars);
-        d3.transition(focusLinesWrap).call(lines);
-        */
-        initAxis(extent)
-        
-        //------------------------------------------------------------
-        // Update Main (Focus) Bars and Lines
-
-        //------------------------------------------------------------
+        d3.transition(focusBarsWrap).call(chartUnderControl.bars);
+        d3.transition(focusLinesWrap).call(chartUnderControl.lines);
+                
       }
 
       //============================================================
@@ -784,6 +668,12 @@ nv.models.exBarContextChart = function(options) {
     cursorYValueFormat = _;
     return chart;
   }; 
+
+  chart.chartUnderControl = function(_) {
+    if (!arguments.length) return chartUnderControl;
+    chartUnderControl = _
+    return chart
+  }
 
   //============================================================
 

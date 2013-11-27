@@ -36,7 +36,10 @@ nv.models.exBarChart = function(options) {
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     , cursorYValueFormat = function(value) { return value }
-    , chartID = 0;
+    , chartID = 0
+    , dataForYAxis
+    , dataForY2Axis
+
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
@@ -222,8 +225,11 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
       // Setup Scales
 
-      var dataForYAxis = seriesData.filter(function(d) { return /*!d.disabled && */(d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
-      var dataForY2Axis = seriesData.filter(function(d) { return /*!d.disabled && */d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
+      dataForYAxis = seriesData.filter(function(d) { return /*!d.disabled && */(d.type == 'bar' || d.type == 'mark' || d.type == 'line') });
+      dataForY2Axis = seriesData.filter(function(d) { return /*!d.disabled && */d.type == 'line2' }); // removed the !d.disabled clause here to fix Issue #240
+
+      chart.dataForYAxis = dataForYAxis
+      chart.dataForY2Axis = dataForY2Axis
 
       x = bars.xScale();
       y1 = bars.yScale();
@@ -945,7 +951,8 @@ nv.models.exBarChart = function(options) {
   chart.y2Axis = y2Axis;
   chart.y3Axis = y3Axis;
   chart.y4Axis = y4Axis;
-  chart.state=state
+  chart.state = state
+  chart.getChartID = chartID
 
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.

@@ -499,6 +499,8 @@ nv.models.exBarContextChart = function(options) {
 
         d3.transition(focusBarsWrap).call(chartUnderControl.bars);
         d3.transition(focusLinesWrap).call(chartUnderControl.lines);
+
+        chartUnderControl.updateAxis()
                 
       }
 

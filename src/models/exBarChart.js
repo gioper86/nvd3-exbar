@@ -13,15 +13,10 @@ nv.models.exBarChart = function(options) {
     , lines = nv.models.line()
     , lines2 = withContext ? nv.models.line() : undefined
     , bars = nv.models.exBar(options)
-    , bars2 = withContext ? nv.models.exBar($.extend({}, options, {withCursor: false, withHorizontalCursor: false, showHorizontalCursorText: false})) : undefined
     , xAxis = nv.models.axis()
-    , x2Axis = withContext ? nv.models.axis() : undefined
     , y1Axis = nv.models.axis()
     , y2Axis = nv.models.axis()
-    , y3Axis = withContext ? nv.models.axis() : undefined
-    , y4Axis = withContext ? nv.models.axis() : undefined
     , legend = nv.models.legend()
-    , brush = withContext ? d3.svg.brush() : undefined
     , state = { stacked: false }
     , delayed = true
     , delay = 1200
@@ -39,13 +34,13 @@ nv.models.exBarChart = function(options) {
     , chartID = 0
     , dataForYAxis
     , dataForY2Axis
+    , updateAxis
 
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
     , width = null
     , height = null
-    , height2 = withContext ? 50 : 0 //context height
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , color = nv.utils.defaultColor()
@@ -67,11 +62,8 @@ nv.models.exBarChart = function(options) {
                '<p>' +  ystr + ' at ' + xstr + '</p>';
       }
     , x
-    , x2
     , y1
     , y2
-    , y3
-    , y4
     , noData = "No Data Available."
     , dispatch = d3.dispatch('tooltipShow', 'tooltipHide', 'brush', 'stateChange', 'changeState')
     ;
@@ -88,23 +80,7 @@ nv.models.exBarChart = function(options) {
     ;
   y2Axis
     .orient('right')
-      ;
-  if (withContext) {
-    lines2
-      .interactive(false)
-      ;
-    x2Axis
-      .orient('bottom')
-      .tickPadding(5)
-      ;
-    y3Axis
-      .orient('left')
-      ;
-    y4Axis
-      .orient('right')
       ;  
-  }
-  
   //============================================================
 
 
@@ -177,13 +153,6 @@ nv.models.exBarChart = function(options) {
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
 
-      if (withContext) {
-        bars2.stacked(state.stacked);
-        bars2.delayed(false);
-        bars2.delay(0);
-        bars2.drawTime(0);
-      }
-
       var container = d3.select(this),
           that = this;
 
@@ -234,11 +203,6 @@ nv.models.exBarChart = function(options) {
       x = bars.xScale();
       y1 = bars.yScale();
       y2 = lines.yScale();
-      if (withContext) {
-        x2 = bars2.xScale();
-        y3 = bars2.yScale();
-        y4 = lines2.yScale();        
-      }
 
       var series1 = dataForYAxis
         .map(function(d) {
@@ -254,32 +218,7 @@ nv.models.exBarChart = function(options) {
           })
         });
 
-      if (withContext) {
-        /*
-        if (timeserie) {
-          x2domain = d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } );
-          x2domain[1] = d3.time.second.offset(interval.offset(x2domain[1], 1), - 1);
-          x2.domain(x2domain)
-        } else {
-          x2.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
-        }
-        */
         x.range([0, availableWidth]);        
-        x2.range([0, availableWidth]);        
-      } else {
-        /*
-        if (timeserie) {
-          x.domain(d3.extent(d3.merge(series1.concat(series2)), function(d) { return d.x } ))
-        } else {
-          x.domain(d3.merge(series1.concat(series2)), function(d) { return d.x } )
-        }
-        */
-        x.range([0, availableWidth]);        
-      }
-
-
-      //------------------------------------------------------------
-
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -297,20 +236,6 @@ nv.models.exBarChart = function(options) {
       focusEnter.append('g').attr('class', 'nv-y2 nv-axis');
       focusEnter.append('g').attr('class', 'nv-barsWrap');
       focusEnter.append('g').attr('class', 'nv-linesWrap');
-
-      if (withContext) {
-        var contextEnter = gEnter.append('g').attr('class', 'nv-context');
-        contextEnter.append('g').attr('class', 'nv-x nv-axis');
-        contextEnter.append('g').attr('class', 'nv-y1 nv-axis');
-        contextEnter.append('g').attr('class', 'nv-y2 nv-axis');
-        contextEnter.append('g').attr('class', 'nv-barsWrap');
-        contextEnter.append('g').attr('class', 'nv-linesWrap');
-        contextEnter.append('g').attr('class', 'nv-brushBackground');
-        contextEnter.append('g').attr('class', 'nv-x nv-brush');
-      }
-
-
-      //------------------------------------------------------------
 
 
       //------------------------------------------------------------
@@ -365,119 +290,37 @@ nv.models.exBarChart = function(options) {
 
       wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+      bars
+        .width(availableWidth)
+        .height(availableHeight1)
+        .color(dataForYAxis.map(function(d,i) {
+          return d.color || color(d, i);
+        }));
 
-      //------------------------------------------------------------
-      // Context Components
+      lines
+        .width(availableWidth)
+        .height(availableHeight1)
+        .color(dataForY2Axis.map(function(d,i) {
+          return d.color || color(d, i);
+        }));
 
-      if (withContext) {
-        bars2
-          .width(availableWidth)
-          .height(availableHeight2)
-          .color(dataForYAxis.map(function(d,i) {
-            return d.color || color(d, i);
-          }));
-
-        lines2
-          .width(availableWidth)
-          .height(availableHeight2)
-          .color(dataForY2Axis.map(function(d,i) {
-            return d.color || color(d, i);
-          }));
-
-        var bars2Wrap = g.select('.nv-context .nv-barsWrap')
+      var barsWrap = g.select('.nv-focus .nv-barsWrap')
           .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
 
-        var noLines = (typeof dataForY2Axis[0] == "undefined")
-        var lines2Wrap = g.select('.nv-context .nv-linesWrap')
+      var noLines = (typeof dataForY2Axis[0] == "undefined")
+      var linesWrap = g.select('.nv-focus .nv-linesWrap')
           .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
-            
-        g.select('.nv-context')
-            .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
+      
+      /* 
+      Translate chart vertically. Useful for the multi-chart implementation
+      */
 
-        d3.transition(bars2Wrap).call(bars2);
-        d3.transition(lines2Wrap).call(lines2);
-      } else {
-        bars
-          .width(availableWidth)
-          .height(availableHeight1)
-          .color(dataForYAxis.map(function(d,i) {
-            return d.color || color(d, i);
-          }));
-
-        lines
-          .width(availableWidth)
-          .height(availableHeight1)
-          .color(dataForY2Axis.map(function(d,i) {
-            return d.color || color(d, i);
-          }));
-
-        var barsWrap = g.select('.nv-focus .nv-barsWrap')
-            .datum(dataForYAxis.length ? dataForYAxis : [{values:[]}]);
-
-        var noLines = (typeof dataForY2Axis[0] == "undefined")
-        var linesWrap = g.select('.nv-focus .nv-linesWrap')
-            .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] : dataForY2Axis);
-        
-        /* 
-        Translate chart vertically. Useful for the multi-chart implementation
-        */
-
-        var translateY = (chartID * height);
-        container.select('.nv-linePlusBar'+chartID)
-            .attr('transform', 'translate('+margin.left+',' + (  translateY + margin.bottom + margin2.top) + ')')
-
-        
-    
-        d3.transition(barsWrap).call(bars);
-        d3.transition(linesWrap).call(lines);
-      }
-        
-
-      //------------------------------------------------------------
-
-
-
-      //------------------------------------------------------------
-      // Setup Brush
-
-      if (withContext) {
-        brush
-          .x(x2)
-          .on('brush', onBrush);
-
-        if (brushExtent) {
-          if (brushExtent[0] < x2.domain()[0])
-            brushExtent[0] = x2.domain()[0];
-          if (brushExtent[1] > x2.domain()[1])
-            brushExtent[1] = x2.domain()[1];
-          brush.extent(brushExtent);
-        }
-
-        var brushBG = g.select('.nv-brushBackground').selectAll('g')
-            .data([brushExtent || brush.extent()])
-
-        var brushBGenter = brushBG.enter()
-            .append('g');
-
-        brushBGenter.append('rect')
-            .attr('class', 'left')
-            .attr('x', 0)
-            .attr('y', 0)
-            .attr('height', availableHeight2);
-
-        brushBGenter.append('rect')
-            .attr('class', 'right')
-            .attr('x', 0)
-            .attr('y', 0)
-            .attr('height', availableHeight2);
-
-        var gBrush = g.select('.nv-x.nv-brush')
-            .call(brush);
-        gBrush.selectAll('rect')
-            //.attr('y', -5)
-            .attr('height', availableHeight2);
-        gBrush.selectAll('.resize').append('path').attr('d', resizePath);        
-      }
+      var translateY = (chartID * height);
+      container.select('.nv-linePlusBar'+chartID)
+          .attr('transform', 'translate('+margin.left+',' + (  translateY + margin.bottom + margin2.top) + ')')
+      
+      d3.transition(barsWrap).call(bars);
+      d3.transition(linesWrap).call(lines);
 
       //------------------------------------------------------------
 
@@ -509,58 +352,6 @@ nv.models.exBarChart = function(options) {
         return ticks1;
       }
 
-      //------------------------------------------------------------
-      // Setup Secondary (Context) Axes
-
-      if (withContext) {
-        x2Axis.scale(x2);
-        x2Axis
-          .tickSize(-availableHeight2, 0);
-
-        if (timeserie) {
-          x2Axis.ticks(timeserie_ticks2);
-        } else {          
-          x2Axis.ticks(availableWidth / 100);
-        }
-        x2Axis.showMaxMin(timeserie);
-
-        //x2Axis.ticks(interval.range, 1);                      
-
-        g.select('.nv-context .nv-x.nv-axis')
-          .attr('transform', 'translate(0,' + y3.range()[0] + ')');
-        d3.transition(g.select('.nv-context .nv-x.nv-axis'))
-          .call(x2Axis);
-
-
-        y3Axis
-          .scale(y3)
-          .ticks( availableHeight2 / 36 )
-          .tickSize( -availableWidth, 0);
-
-        g.select('.nv-context .nv-y1.nv-axis')
-          .style('opacity', dataForYAxis.length ? 1 : 0)
-          .attr('transform', 'translate(0,' + x2.range()[0] + ')');
-            
-        /* hide y3Axis 
-        d3.transition(g.select('.nv-context .nv-y1.nv-axis'))
-            .call(y3Axis);
-        */
-
-        y4Axis
-          .scale(y4)
-          .ticks( availableHeight2 / 36 )
-          .tickSize(dataForYAxis.length ? 0 : -availableWidth, 0); // Show the y2 rules only if y1 has none
-
-        g.select('.nv-context .nv-y2.nv-axis')
-            .style('opacity', dataForY2Axis.length ? 1 : 0)
-            .attr('transform', 'translate(' + x2.range()[1] + ',0)');
-
-        /* hide y4Axis 
-        d3.transition(g.select('.nv-context .nv-y2.nv-axis'))
-            .call(y4Axis);
-        */
-      }
-      //------------------------------------------------------------
 
       //============================================================
       // Event Handling/Dispatching (in chart's scope)
@@ -587,14 +378,17 @@ nv.models.exBarChart = function(options) {
             state.stacked = !state.stacked;
             bars.stacked(state.stacked);
             if (withContext) {
-              bars2.stacked(state.stacked);
+              /* TODO
+                Change context when clicking on the legend. A reference to the context is needed
+              */
+              //bars2.stacked(state.stacked);
             }
             break;
           case 'Delayed':
             delayed = !delayed;
             bars.delayed(delayed);
             if (withContext) {
-              bars2.stacked(state.stacked);
+              //bars2.stacked(state.stacked);
             }
             break;
         }
@@ -790,88 +584,8 @@ nv.models.exBarChart = function(options) {
 
       }
 
-      function onBrush() {
-        //console.log('onBrush ...');
-        var bextent = brush.extent();
-        brushExtent = brush.empty() ? null : brush.extent();
-        extent = brush.empty() ? x2.domain() : brush.extent();
-        dispatch.brush({extent: extent, brush: brush});
 
-        updateBrushBG();
-
-        //console.log('onBrush - extent', extent);
-
-        //
-
-        //------------------------------------------------------------
-        // Prepare Main (Focus) Bars and Lines
-
-        var focusBarsWrap = g.select('.nv-focus .nv-barsWrap')
-            .datum(!dataForYAxis.length ? [{values:[]}] :
-              dataForYAxis
-                .map(function(d,i) {
-                  return {
-                    key: d.key,
-                    title: d.title,
-                    elClass: d.elClass,
-                    type: d.type,
-                    color: d.color,
-                    formatOptions: d.formatOptions,
-                    hidden: d.hidden,
-                    disabled: d.disabled,
-                    series: d.series,
-                    values: d.values.filter(function(d,i) {
-                      return bars.x()(d,i) >= extent[0] && bars.x()(d,i) <= extent[1];
-                    })
-                  }
-                })
-            );
-        
-        var focusLinesWrap = g.select('.nv-focus .nv-linesWrap')
-            .datum(noLines || dataForY2Axis[0].disabled ? [{values:[]}] :
-              dataForY2Axis
-                .map(function(d,i) {
-                  return {
-                    key: d.key,
-                    title: d.title,
-                    elClass: d.elClass,
-                    type: d.type,
-                    color: d.color,
-                    formatOptions: d.formatOptions,
-                    hidden: d.hidden,
-                    disabled: d.disabled,
-                    series: d.series,
-                    values: d.values.filter(function(d,i) {
-                      return lines.x()(d,i) >= extent[0] && lines.x()(d,i) <= extent[1];
-                    })
-                  }
-                })
-             );
-                 
-        //------------------------------------------------------------
-        
-        
-        //------------------------------------------------------------
-        // Update Main (Focus) X Axis
-
-        if (dataForYAxis.length) {
-          x = bars.xScale();
-        } else {
-          x = lines.xScale();
-        }
-
-        d3.transition(focusBarsWrap).call(bars);
-        d3.transition(focusLinesWrap).call(lines);
-
-        initAxis(extent)
-        
-        //------------------------------------------------------------
-        // Update Main (Focus) Bars and Lines
-
-        //------------------------------------------------------------
-      }
-
-      //============================================================
+      updateAxis = initAxis
 
       bars
         .width(availableWidth)
@@ -888,17 +602,13 @@ nv.models.exBarChart = function(options) {
           return d.color || color(d, i);
         }));
 
-      if (withContext) {       
-        onBrush();
-      } else {
         if (dataForYAxis.length) {
           x = bars.xScale();
         } else {
           x = lines.xScale();
         }
         initAxis()
-      }
-
+  
     });
 
     return chart;
@@ -942,17 +652,11 @@ nv.models.exBarChart = function(options) {
   chart.dispatch = dispatch;
   chart.legend = legend;
   chart.lines = lines;
-  chart.lines2 = lines2;
   chart.bars = bars;
-  chart.bars2 = bars2;
   chart.xAxis = xAxis;
-  chart.x2Axis = x2Axis;
   chart.y1Axis = y1Axis;
   chart.y2Axis = y2Axis;
-  chart.y3Axis = y3Axis;
-  chart.y4Axis = y4Axis;
   chart.state = state
-  chart.getChartID = chartID
 
   d3.rebind(chart, lines, 'defined', 'size', 'clipVoronoi', 'interpolate');
   //TODO: consider rebinding x, y and some other stuff, and simply do soemthign lile bars.x(lines.x()), etc.
@@ -963,22 +667,18 @@ nv.models.exBarChart = function(options) {
     getX = _;
     lines.x(_);
     bars.x(_);
-    if (withContext) {
-      lines2.x(_);
-      bars2.x(_);
-    }
     return chart;
   };
+
+  chart.updateAxis = function() {
+    updateAxis()
+  }
 
   chart.y = function(_) {
     if (!arguments.length) return getY;
     getY = _;
     lines.y(_);
     bars.y(_);
-    if (withContext) {
-      lines2.y(_);
-      bars2.y(_);
-    }
     return chart;
   };
 
@@ -990,9 +690,6 @@ nv.models.exBarChart = function(options) {
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
     //
     bars.mainMargin(margin);
-    if (typeof bars2 !== "undefined") {
-      bars.mainMargin(margin);
-    }
     return chart;
   };
 

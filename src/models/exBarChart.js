@@ -363,6 +363,7 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) { 
+        
         d.disabled = !d.disabled;
 
         if (!seriesData.filter(function(d) { return !d.disabled }).length) {
@@ -374,6 +375,9 @@ nv.models.exBarChart = function(options) {
         }
 
         chart.update();
+        if(withContext) {
+          contextChart.update()
+        }
       });
 
       controls.dispatch.on('legendClick', function(d,i) {
@@ -383,9 +387,6 @@ nv.models.exBarChart = function(options) {
             state.stacked = !state.stacked;
             bars.stacked(state.stacked);
             if (withContext) {
-              /* TODO
-                Change context when clicking on the legend. A reference to the context is needed
-              */
               //bars2.stacked(state.stacked);
             }
             break;
@@ -400,7 +401,6 @@ nv.models.exBarChart = function(options) {
 
         state.stacked = bars.stacked();
         dispatch.stateChange(state);
-
         chart.update();
       });
 
@@ -411,7 +411,6 @@ nv.models.exBarChart = function(options) {
 
       // Update chart from a state object passed to event handler
       dispatch.on('changeState', function(e) {
-
         if (typeof e.disabled !== 'undefined') {
           seriesData.forEach(function(series,i) {
             series.disabled = e.disabled[i];

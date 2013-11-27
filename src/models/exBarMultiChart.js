@@ -16,16 +16,10 @@ nv.models.exBarMultiChart = function(options) {
   function chart(selection) {
   	
 
-    mainChart.chartID(0)
+    //mainChart.chartID(0)
 
-    contextChart.height(contextHeight)
     contextChart.chartUnderControl(mainChart);
-
     mainChart.contextChart(contextChart)
-
-    /*contextChart.chartID(1)
-  	contextChart.height(500/2)*/
-
     mainChart(selection)
   	contextChart(selection)
 

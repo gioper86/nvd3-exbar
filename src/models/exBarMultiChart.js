@@ -10,19 +10,18 @@ nv.models.exBarMultiChart = function(options) {
   height = null,
   contextHeight = 50,
   margin = {top: 10, right: 30, bottom: 20, left: 60},
+  contextMargin = {top: 10, right: 30, bottom: 5, left: 60},
   delayed
 
   function chart(selection) {
   	
-    chart.container = this;
 
     mainChart.chartID(0)
-    if(height) { mainChart.height(height) }
-    mainChart.contextHeight(contextHeight)
 
     contextChart.height(contextHeight)
     contextChart.chartUnderControl(mainChart);
 
+    mainChart.contextChart(contextChart)
 
     /*contextChart.chartID(1)
   	contextChart.height(500/2)*/
@@ -30,7 +29,6 @@ nv.models.exBarMultiChart = function(options) {
     mainChart(selection)
   	contextChart(selection)
 
-    console.log(mainChart.dataForYAxis)
   }
 
   //============================================================
@@ -87,20 +85,31 @@ nv.models.exBarMultiChart = function(options) {
     return chart;
   };
 
-  chart.margin = function(_) {
-    if (!arguments.length) return mainChart.bars.margin;
+  chart.mainChartMargin = function(_) {
+    if (!arguments.length) return margin;
     
-
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    //
-    mainChart.bars.mainMargin(margin);
-    contextChart.bars.mainMargin(margin)
-
+    
+    mainChart.margin(margin)
     return chart;
   };
+
+
+  chart.contextChartMargin = function(_) {
+    if (!arguments.length) return contextMargin;
+    
+    contextMargin.top    = typeof _.top    != 'undefined' ? _.top    : contextMargin.top;
+    contextMargin.right  = typeof _.right  != 'undefined' ? _.right  : contextMargin.right;
+    contextMargin.bottom = typeof _.bottom != 'undefined' ? _.bottom : contextMargin.bottom;
+    contextMargin.left   = typeof _.left   != 'undefined' ? _.left   : contextMargin.left;
+    
+    contextChart.margin(contextMargin)
+    return chart;
+  };
+ 
 
   chart.width = function(_) {
     if (!arguments.length) return width;

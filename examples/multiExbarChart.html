@@ -161,7 +161,8 @@ function drawChart(selector, gdata, options) {
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
 	//chart.forceY([0, 2]);
-	chart.margin(options.margin);
+	chart.mainChartMargin(options.margin);
+	chart.contextChartMargin(options.contextMargin);
 	//
 	//chart.xAxis.rotateLabels(-30);
 	//
@@ -275,6 +276,7 @@ $(document).ready(function() {
 	var options = {
 		//context: true,
 		margin: {bottom: 50, left: 100},
+		contextMargin: {left: 100},
 		timeserie: true,
 		sparse: false,
 		stacked: true,
@@ -351,10 +353,7 @@ lastYear = function(years) {
 	</div>
 
 	<div id="chart-container" width="100%" style="padding: 10px 25px 10px 25px;">
-		<svg id="chart1">
-		</svg>
-				<svg id="chart2">
-		</svg>
+		<svg id="chart1"></svg>
  	</div>
 
 </body>

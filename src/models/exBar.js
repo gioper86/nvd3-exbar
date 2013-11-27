@@ -77,10 +77,9 @@ var
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
     var el = $(g).closest('svg')[0];
     var pos = d3.mouse(el);
-    //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
 
-    var nyvalue = y.invert(pos[1]-mainMargin.right);        
+    var nyvalue = y.invert(pos[1]-mainMargin.bottom);        
     nyvalue = cursorYValueFormat(nyvalue)
 
     $(g).closest('svg').find(".cursoryText").text(nyvalue)

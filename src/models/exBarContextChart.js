@@ -35,9 +35,7 @@ nv.models.exBarContextChart = function(options) {
 
 
   var margin = {top: 10, right: 30, bottom: 5, left: 60}
-    , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
     , width = null
-    , height = null
     , height2 = 50
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
@@ -104,11 +102,9 @@ nv.models.exBarContextChart = function(options) {
 
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight1 = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - height2,
-          availableHeight2 = height2 - margin2.top - margin2.bottom;
+          availableHeight2 = height2 - margin.top - margin.bottom;
 
-      if (availableWidth < 10 || availableHeight1 < 10) {
+      if (availableWidth < 10 || availableHeight2 < 10) {
         return;
       }
 
@@ -235,9 +231,10 @@ nv.models.exBarContextChart = function(options) {
       var noLines = (typeof dataFory2Axis[0] == "undefined")
       var linesWrap = g.select('.nv-context .nv-linesWrap')
         .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] : dataFory2Axis);
-          
+      
+
       g.select('.nv-context')
-          .attr('transform', 'translate(0,' + ( availableHeight1 + margin.bottom + margin2.top) + ')')
+          .attr('transform', 'translate(0,' + ( chartUnderControl.availableHeight + height2 + margin.bottom + margin.top) + ')')
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);

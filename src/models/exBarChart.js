@@ -35,9 +35,12 @@ nv.models.exBarChart = function(options) {
     , dataForYAxis
     , dataForY2Axis
     , updateAxis
+    , availableHeight
+    , contextChart
 
 
-  var margin = {top: 10, right: 30, bottom: 5, left: 60}
+
+    var margin = {top: 10, right: 30, bottom: 5, left: 60}
     , margin2 = {top: 0, right: 30, bottom: 20, left: 60}
     , width = null
     , height = null
@@ -159,8 +162,9 @@ nv.models.exBarChart = function(options) {
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - height2,
-          availableHeight2 = height2 - margin2.top - margin2.bottom;
+                             - margin.top - margin.bottom - contextChart.height()
+
+          chart.availableHeight = availableHeight1
 
       if (availableWidth < 10 || availableHeight1 < 10) {
         return;
@@ -259,7 +263,8 @@ nv.models.exBarChart = function(options) {
         if ( margin.top != legend.height()) {
           margin.top = legend.height();
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - height2;
+                             - margin.top - margin.bottom - contextChart.height();
+          chart.availableHeight = availableHeight1
         }
 
         g.select('.nv-legendWrap')
@@ -428,39 +433,6 @@ nv.models.exBarChart = function(options) {
       //============================================================
       // Functions
       //------------------------------------------------------------
-
-      // Taken from crossfilter (http://square.github.com/crossfilter/)
-      function resizePath(d) {
-        var e = +(d == 'e'),
-            x = e ? 1 : -1,
-            y = availableHeight2 / 3;
-        return 'M' + (.5 * x) + ',' + y
-            + 'A6,6 0 0 ' + e + ' ' + (6.5 * x) + ',' + (y + 6)
-            + 'V' + (2 * y - 6)
-            + 'A6,6 0 0 ' + e + ' ' + (.5 * x) + ',' + (2 * y)
-            + 'Z'
-            + 'M' + (2.5 * x) + ',' + (y + 8)
-            + 'V' + (2 * y - 8)
-            + 'M' + (4.5 * x) + ',' + (y + 8)
-            + 'V' + (2 * y - 8);
-      }
-
-
-      function updateBrushBG() {
-        if (!brush.empty()) brush.extent(brushExtent);
-        brushBG
-          .data([brush.empty() ? x2.domain() : brushExtent])
-          .each(function(d,i) {
-            var leftWidth = x2(d[0]) - x2.range()[0],
-                rightWidth = x2.range()[1] - x2(d[1]);
-            d3.select(this).select('.left')
-              .attr('width',  leftWidth < 0 ? 0 : leftWidth);
-
-            d3.select(this).select('.right')
-              .attr('x', x2(d[1]))
-              .attr('width', rightWidth < 0 ? 0 : rightWidth);
-          });
-      }
 
       function initAxis(extent) {
         if (typeof extent == "undefined") {
@@ -711,9 +683,9 @@ nv.models.exBarChart = function(options) {
     return chart;
   };
 
-  chart.contextHeight = function(_) {
-    if (!arguments.length) return height;
-    height2 = _;
+  chart.contextChart = function(_) {
+    if (!arguments.length) return contextChart;
+    contextChart = _;
     return chart;
   }; 
 

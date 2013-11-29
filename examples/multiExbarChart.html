@@ -275,8 +275,10 @@ function drawChart(selector, gdata, options) {
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 50, left: 100},
-		contextMargin: {left: 100},
+		margin: {bottom: 50, left: 100, top: 60},
+		contextMargin: {left: 100, bottom: 0, top:10},
+//		margin: {bottom: 0, left: 100, top: 0},
+//		contextMargin: {left: 100, bottom: 0, top:0},
 		timeserie: true,
 		sparse: false,
 		stacked: true,
@@ -294,6 +296,7 @@ $(document).ready(function() {
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
 		withContext: true,
+		contextAtTheTop: true,
 		//incomplete: false,
 		interval: d3.time.month,
 		disContinuedLines: false,
@@ -302,6 +305,7 @@ $(document).ready(function() {
 		withCursor: true,
 		withHorizontalCursor: true,
 		showHorizontalCursorText: true
+
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
 	}

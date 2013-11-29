@@ -233,8 +233,13 @@ nv.models.exBarContextChart = function(options) {
         .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] : dataFory2Axis);
       
 
+      var translateY = chartUnderControl.availableHeight + height2
+      if(options.contextAtTheTop) {
+        translateY = 0
+      }
+
       g.select('.nv-context')
-          .attr('transform', 'translate(0,' + ( chartUnderControl.availableHeight + height2 + margin.bottom + margin.top) + ')')
+          .attr('transform', 'translate(0,' + ( translateY - margin.bottom + margin.top) + ')')
 
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);

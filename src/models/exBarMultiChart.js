@@ -4,7 +4,7 @@ nv.models.exBarMultiChart = function(options) {
   }
 
   var mainChart = nv.models.exBarChart(options),
-  contextChart = nv.models.exBarContextChart(options);
+  contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
 
   var width, 
   height = null,
@@ -18,11 +18,14 @@ nv.models.exBarMultiChart = function(options) {
 
     //mainChart.chartID(0)
 
-    contextChart.chartUnderControl(mainChart);
-    mainChart.contextChart(contextChart)
-    mainChart(selection)
-  	contextChart(selection)
+    if(options.withContext) { 
+      contextChart.chartUnderControl(mainChart) 
+      mainChart.contextChart(contextChart)
+    }
 
+    mainChart(selection)
+
+    if(options.withContext) { contextChart(selection) }
   }
 
   //============================================================
@@ -37,7 +40,7 @@ nv.models.exBarMultiChart = function(options) {
 
   chart.update = function() {
   	mainChart.update()
-  	contextChart.update()
+  	if(options.withContext) { contextChart.update() }
 	  return chart
   }
 
@@ -59,9 +62,11 @@ nv.models.exBarMultiChart = function(options) {
     mainChart.lines.x(_);
     mainChart.bars.x(_);
 
-    contextChart.getX = _;
-    contextChart.lines.x(_);
-    contextChart.bars.x(_);
+    if(options.withContext) {
+      contextChart.getX = _;
+      contextChart.lines.x(_);
+      contextChart.bars.x(_);
+    }
 
     return chart;
   };
@@ -72,21 +77,23 @@ nv.models.exBarMultiChart = function(options) {
     mainChart.lines.y(_);
     mainChart.y(_);
 
-    contextChart.getY = _;
-    contextChart.lines.y(_);
-    contextChart.bars.y(_);
+    if(options.withContext) {
+      contextChart.getY = _;
+      contextChart.lines.y(_);
+      contextChart.bars.y(_);
+    }
 
     return chart;
   };
 
   chart.mainChartMargin = function(_) {
     if (!arguments.length) return margin;
-    
+
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
     margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
-    
+
     mainChart.margin(margin)
     return chart;
   };
@@ -100,7 +107,9 @@ nv.models.exBarMultiChart = function(options) {
     contextMargin.bottom = typeof _.bottom != 'undefined' ? _.bottom : contextMargin.bottom;
     contextMargin.left   = typeof _.left   != 'undefined' ? _.left   : contextMargin.left;
     
-    contextChart.margin(contextMargin)
+    if (options.withContext) { 
+      contextChart.margin(contextMargin)
+    }
     return chart;
   };
  
@@ -121,21 +130,21 @@ nv.models.exBarMultiChart = function(options) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     mainChart.legend.color(color);
-    contextChart.legend.color(color);
+    if(options.withContext) { contextChart.legend.color(color); }
     return chart;
   };
 
   chart.showLegend = function(_) {
     if (!arguments.length) return showLegend;
     mainChart.showLegend = _;
-    contextChart.showLegend = _;
+    if(options.withContext) { contextChart.showLegend = _; }
     return chart;
   };
 
   chart.showControls = function(_) {
     if (!arguments.length) return mainChart.showControls;
     mainChart.showControls = _;
-    contextChart.showControls = _;
+    if(options.withContext) { contextChart.showControls = _; }
     return chart;
   };
 
@@ -143,7 +152,7 @@ nv.models.exBarMultiChart = function(options) {
     if (!arguments.length) return mainChart.showStacked;
     
     mainChart.showStacked = _;
-    contextChart.showStacked = _;
+    if(options.withContext) { contextChart.showStacked = _; }
 
     return chart;
   };
@@ -152,7 +161,7 @@ nv.models.exBarMultiChart = function(options) {
     if (!arguments.length) return mainChart.showDelayed;
 
     mainChart.showDelayed = _;
-    contextChart.showDelayed = _;
+    if(options.withContext) { contextChart.showDelayed = _; }
 
     return chart;
   };
@@ -178,7 +187,7 @@ nv.models.exBarMultiChart = function(options) {
   chart.noData = function(_) {
     if (!arguments.length) return mainChart.noData;
     mainChart.noData = _;
-    contextChart.noData = _;
+    if(options.withContext) { contextChart.noData = _; }
     return chart;
   };
 
@@ -191,34 +200,34 @@ nv.models.exBarMultiChart = function(options) {
   chart.stacked = function(_) {
     if (!arguments.length) return mainChart.state.stacked;
     mainChart.state.stacked = _;
-    contextChart.state.stacked = _;
+    if(options.withContext) { contextChart.state.stacked = _; }
     return chart;
   }
 
   chart.delayed = function(_) {
     if (!arguments.length) return mainChart.delayed;
     mainChart.delayed = _;
-    contextChart.delayed = _;
+    if(options.withContext) { contextChart.delayed = _; }
   }
 
   chart.delay = function(_) {
     if (!arguments.length) return mainChart.delay;
     mainChart.delay = _;
-    contextChart.delay = _;
+    if(options.withContext) { contextChart.delay = _; }
     return chart;
   };
 
   chart.drawTime = function(_) {
     if (!arguments.length) return mainChart.drawTime;
     mainChart.drawTime = _;
-    contextChart.drawTime = _;
+    if(options.withContext) { contextChart.drawTime = _; }
     return chart;
   };
 
   chart.interval = function(_) {
     if (!arguments.length) return mainChart.interval;
     mainChart.bars.interval(_);
-    contextChart.bars.interval(_);
+    if(options.withContext) { contextChart.bars.interval(_); }
     return chart;
   };
 
@@ -231,7 +240,7 @@ nv.models.exBarMultiChart = function(options) {
   chart.cursorYValueFormat = function(_) {
     if (!arguments.length) return mainChart.cursorYValueFormat;
     mainChart.cursorYValueFormat(_);
-    contextChart.cursorYValueFormat(_);
+    if(options.withContext) { contextChart.cursorYValueFormat(_); }
     return chart;
   }; 
 
@@ -239,7 +248,7 @@ nv.models.exBarMultiChart = function(options) {
   chart.xAxisTickFormat = function(_) {
     if (!arguments.length) return mainChart.xAxis.tickFormat;
     mainChart.xAxis.tickFormat(_)
-    contextChart.xAxis.tickFormat(_)
+    if(options.withContext) { contextChart.xAxis.tickFormat(_) }
     return chart;
   }
 

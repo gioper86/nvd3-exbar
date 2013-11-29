@@ -141,6 +141,7 @@ nv.models.exBarChart = function(options) {
 
   function chart(selection) {
     selection.each(function(data) {
+
       var seriesData = data ? data.series : [];
       //
       chart.update = function(updateDelay) {
@@ -159,11 +160,14 @@ nv.models.exBarChart = function(options) {
       var container = d3.select(this),
           that = this;
 
+      var contextHeight = options.withContext ? contextChart.height(): 0
+
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - contextChart.height()
+                             - margin.top - margin.bottom - contextHeight
 
+          console.log(availableHeight1)
           chart.availableHeight = availableHeight1
 
       if (availableWidth < 10 || availableHeight1 < 10) {
@@ -260,15 +264,16 @@ nv.models.exBarChart = function(options) {
             }))
           .call(legend);
 
+        /*
         if ( margin.top != legend.height()) {
           margin.top = legend.height();
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
-                             - margin.top - margin.bottom - contextChart.height();
+                             - margin.top - margin.bottom - contextHeight
           chart.availableHeight = availableHeight1
-        }
+        }*/
 
         g.select('.nv-legendWrap')
-            .attr('transform', 'translate(' + controlWidth() + ',' + (-margin.top) +')');
+            .attr('transform', 'translate(' + controlWidth() + ',' + (-legend.height()) +')');
       }
 
       //------------------------------------------------------------
@@ -319,10 +324,13 @@ nv.models.exBarChart = function(options) {
       /* 
       Translate chart vertically. Useful for the multi-chart implementation
       */
+      var translateY = 0
+      if(options.withContext && options.contextAtTheTop) { 
+        var translateY = contextChart.height()
+      }
 
-      var translateY = (chartID * height);
       container.select('.nv-linePlusBar'+chartID)
-          .attr('transform', 'translate('+margin.left+',' + (  translateY + margin.bottom + margin2.top) + ')')
+          .attr('transform', 'translate('+margin.left+',' + (  translateY + margin.top) + ')')
       
       d3.transition(barsWrap).call(bars);
       d3.transition(linesWrap).call(lines);

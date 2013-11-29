@@ -26,6 +26,7 @@ nv.models.exBarChart = function(options) {
     , rotateLabels = 0
     , interval = d3.time.day
     , controls = nv.models.legend()
+    , showLegend = (typeof options.showLegend === "undefined") ? true : options.showLegend
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
@@ -47,7 +48,6 @@ nv.models.exBarChart = function(options) {
     , getX = function(d) { return d.x }
     , getY = function(d) { return d.y }
     , color = nv.utils.defaultColor()
-    , showLegend = true
     , extent
     , brushExtent = null
     , tooltips = true
@@ -167,7 +167,6 @@ nv.models.exBarChart = function(options) {
           availableHeight1 = (height || parseInt(container.style('height')) || 400)
                              - margin.top - margin.bottom - contextHeight
 
-          console.log(availableHeight1)
           chart.availableHeight = availableHeight1
 
       if (availableWidth < 10 || availableHeight1 < 10) {
@@ -248,6 +247,7 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
       // Legend
+      console.log("show le:" + showLegend)
 
       if (showLegend) {
         if (timeserie) {
@@ -287,13 +287,17 @@ nv.models.exBarChart = function(options) {
         if (showDelayed) {
           controlsData.push({ key: 'Delayed', title: 'Delayed', disabled: !delayed });
         }
-
+        console.log(controls.height())
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
-            .attr('transform', 'translate(0,' + (-margin.top) +')')
+            .attr('transform', 'translate(0,' + (-controls.height()-10) +')')
             .call(controls);
+    
       }
+
+
+
 
       //------------------------------------------------------------
 
@@ -700,30 +704,6 @@ nv.models.exBarChart = function(options) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
     legend.color(color);
-    return chart;
-  };
-
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
-    return chart;
-  };
-
-  chart.showControls = function(_) {
-    if (!arguments.length) return showControls;
-    showControls = _;
-    return chart;
-  };
-
-  chart.showStacked = function(_) {
-    if (!arguments.length) return showStacked;
-    showStacked = _;
-    return chart;
-  };
-
-  chart.showDelayed = function(_) {
-    if (!arguments.length) return showDelayed;
-    showDelayed = _;
     return chart;
   };
 

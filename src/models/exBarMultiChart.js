@@ -134,38 +134,6 @@ nv.models.exBarMultiChart = function(options) {
     return chart;
   };
 
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    mainChart.showLegend = _;
-    if(options.withContext) { contextChart.showLegend = _; }
-    return chart;
-  };
-
-  chart.showControls = function(_) {
-    if (!arguments.length) return mainChart.showControls;
-    mainChart.showControls = _;
-    if(options.withContext) { contextChart.showControls = _; }
-    return chart;
-  };
-
-  chart.showStacked = function(_) {
-    if (!arguments.length) return mainChart.showStacked;
-    
-    mainChart.showStacked = _;
-    if(options.withContext) { contextChart.showStacked = _; }
-
-    return chart;
-  };
-
-  chart.showDelayed = function(_) {
-    if (!arguments.length) return mainChart.showDelayed;
-
-    mainChart.showDelayed = _;
-    if(options.withContext) { contextChart.showDelayed = _; }
-
-    return chart;
-  };
-
   chart.tooltip = function(_) {
     if (!arguments.length) return mainChart.tooltip;
     mainChart.tooltip = _;

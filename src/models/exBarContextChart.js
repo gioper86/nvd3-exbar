@@ -578,30 +578,6 @@ nv.models.exBarContextChart = function(options) {
     return chart;
   };
 
-  chart.showLegend = function(_) {
-    if (!arguments.length) return showLegend;
-    showLegend = _;
-    return chart;
-  };
-
-  chart.showControls = function(_) {
-    if (!arguments.length) return showControls;
-    showControls = _;
-    return chart;
-  };
-
-  chart.showStacked = function(_) {
-    if (!arguments.length) return showStacked;
-    showStacked = _;
-    return chart;
-  };
-
-  chart.showDelayed = function(_) {
-    if (!arguments.length) return showDelayed;
-    showDelayed = _;
-    return chart;
-  };
-
   chart.tooltip = function(_) {
     if (!arguments.length) return tooltip;
     tooltip = _;

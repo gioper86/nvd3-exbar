@@ -83,6 +83,7 @@ nv.models.exBarContextChart = function(options) {
 
   function chart(selection) {
     selection.each(function(data) {
+      data = data[0]
       var seriesData = data ? data.series : [];
       //
       chart.update = function(updateDelay) {
@@ -122,7 +123,7 @@ nv.models.exBarContextChart = function(options) {
 
         noDataText
           .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight1 / 2)
+          .attr('y', margin.top + availableHeight2 / 2)
           .text(function(d) { return d });
 
         return chart;

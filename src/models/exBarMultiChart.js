@@ -3,7 +3,8 @@ nv.models.exBarMultiChart = function(options) {
     options = {}
   }
 
-  var mainChart = nv.models.exBarChart(options),
+  var mainChart = [nv.models.exBarChart(options)]
+ 
   contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
 
   var width, 
@@ -14,18 +15,39 @@ nv.models.exBarMultiChart = function(options) {
   delayed
 
   function chart(selection) {
-  	
+    selection.each(function(data) {	
 
-    //mainChart.chartID(0)
+      
+      $.each(data, function(index, value) {
 
-    if(options.withContext) { 
-      contextChart.chartUnderControl(mainChart) 
-      mainChart.contextChart(contextChart)
-    }
+        mainChart[index].chartID(index)
 
-    mainChart(selection)
+        if(options.withContext) { 
+          mainChart[index].contextChart(contextChart)
+        }
+        mainChart[index](selection)
+      })
 
-    if(options.withContext) { contextChart(selection) }
+      if(options.withContext) { 
+        contextChart.chartUnderControl(mainChart[0]) 
+        contextChart(selection) 
+      }
+    });
+  }
+
+
+  function callFunctionOnCharts(functionName,params) {
+      var args = Array.prototype.slice.call(params);
+      if(args.length <= 1) {
+        $.each(mainChart,function(index, chartInstance) {
+          chartInstance[functionName].apply(undefined,args)
+        })
+      } else {
+        console.log(functionName)
+        var index = args[1]
+        var args2= args.slice(0,1)
+        mainChart[index][functionName].apply(undefined,args2)
+      }
   }
 
   //============================================================
@@ -39,7 +61,7 @@ nv.models.exBarMultiChart = function(options) {
   
 
   chart.update = function() {
-  	mainChart.update()
+  	callFunctionOnCharts("update",[])
   	if(options.withContext) { contextChart.update() }
 	  return chart
   }
@@ -56,31 +78,27 @@ nv.models.exBarMultiChart = function(options) {
   chart.mainChart = mainChart;
   chart.contextChart = contextChart;
 
-  chart.x = function(_) {
-    if (!arguments.length) return getX;
-    mainChart.getX = _;
-    mainChart.lines.x(_);
-    mainChart.bars.x(_);
+  chart.x = function() {
+
+    callFunctionOnCharts("x",arguments)  
 
     if(options.withContext) {
-      contextChart.getX = _;
-      contextChart.lines.x(_);
-      contextChart.bars.x(_);
+      contextChart.getX = arguments[0];
+      contextChart.lines.x(arguments[0]);
+      contextChart.bars.x(arguments[0]);
     }
 
     return chart;
   };
 
-  chart.y = function(_) {
-    if (!arguments.length) return getY;
-    mainChart.getY = _;
-    mainChart.lines.y(_);
-    mainChart.y(_);
+  chart.y = function() {
+
+    callFunctionOnCharts("y",arguments)
 
     if(options.withContext) {
-      contextChart.getY = _;
-      contextChart.lines.y(_);
-      contextChart.bars.y(_);
+      contextChart.getY = arguments[0];
+      contextChart.lines.y(arguments[0]);
+      contextChart.bars.y(arguments[0]);
     }
 
     return chart;
@@ -94,7 +112,8 @@ nv.models.exBarMultiChart = function(options) {
     margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
     margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
 
-    mainChart.margin(margin)
+    callFunctionOnCharts("margin",[margin])
+
     return chart;
   };
 
@@ -126,17 +145,16 @@ nv.models.exBarMultiChart = function(options) {
     return chart;
   };
 
-  chart.color = function(_) {
-    if (!arguments.length) return color;
-    color = nv.utils.getColor(_);
-    mainChart.legend.color(color);
-    if(options.withContext) { contextChart.legend.color(color); }
+  chart.color = function() {
+    callFunctionOnCharts("color",arguments)
+
+    if(options.withContext) { contextChart.color(arguments[0]); }
     return chart;
   };
 
-  chart.tooltip = function(_) {
-    if (!arguments.length) return mainChart.tooltip;
-    mainChart.tooltip = _;
+  chart.tooltip = function() {
+    callFunctionOnCharts("tooltip",arguments)
+    
     return chart;
   };
 
@@ -165,37 +183,38 @@ nv.models.exBarMultiChart = function(options) {
     return chart;
   };
 
-  chart.stacked = function(_) {
-    if (!arguments.length) return mainChart.state.stacked;
-    mainChart.state.stacked = _;
-    if(options.withContext) { contextChart.state.stacked = _; }
+  chart.stacked = function() {
+      
+    callFunctionOnCharts("stacked",arguments)
+    if(options.withContext) { contextChart.state.stacked = arguments[0]; }
+
     return chart;
   }
 
-  chart.delayed = function(_) {
-    if (!arguments.length) return mainChart.delayed;
-    mainChart.delayed = _;
-    if(options.withContext) { contextChart.delayed = _; }
+  chart.delayed = function() {
+
+    callFunctionOnCharts("delayed",arguments)    
+    if(options.withContext) { contextChart.delayed = arguments[0]; }
+
+    return chart;
   }
 
-  chart.delay = function(_) {
-    if (!arguments.length) return mainChart.delay;
-    mainChart.delay = _;
-    if(options.withContext) { contextChart.delay = _; }
+  chart.delay = function() {
+    callFunctionOnCharts("delay",arguments)
+    if(options.withContext) { contextChart.delay = arguments[0]; }
     return chart;
   };
 
-  chart.drawTime = function(_) {
-    if (!arguments.length) return mainChart.drawTime;
-    mainChart.drawTime = _;
-    if(options.withContext) { contextChart.drawTime = _; }
+  chart.drawTime = function() {
+    callFunctionOnCharts("drawTime",arguments)
     return chart;
   };
 
-  chart.interval = function(_) {
-    if (!arguments.length) return mainChart.interval;
-    mainChart.bars.interval(_);
-    if(options.withContext) { contextChart.bars.interval(_); }
+  chart.interval = function() {
+    
+    callFunctionOnCharts("interval",arguments)
+    if(options.withContext) { contextChart.interval(arguments[0]); }
+
     return chart;
   };
 
@@ -205,18 +224,27 @@ nv.models.exBarMultiChart = function(options) {
     return chart;    
   }
 
-  chart.cursorYValueFormat = function(_) {
-    if (!arguments.length) return mainChart.cursorYValueFormat;
-    mainChart.cursorYValueFormat(_);
-    if(options.withContext) { contextChart.cursorYValueFormat(_); }
+  chart.cursorYValueFormat = function() {
+    callFunctionOnCharts("cursorYValueFormat",arguments)
+    if(options.withContext) { contextChart.cursorYValueFormat(arguments[0]); }
     return chart;
   }; 
 
+  chart.xAxisTickFormat = function() {
+    callFunctionOnCharts("xAxisTickFormat",arguments)
+    if(options.withContext) { contextChart.xAxis.tickFormat(arguments[0]) }
+    return chart;
+  }
 
-  chart.xAxisTickFormat = function(_) {
-    if (!arguments.length) return mainChart.xAxis.tickFormat;
-    mainChart.xAxis.tickFormat(_)
-    if(options.withContext) { contextChart.xAxis.tickFormat(_) }
+  chart.y1AxisTickFormat = function() {
+    callFunctionOnCharts("y1AxisTickFormat",arguments)
+    if(options.withContext) { contextChart.y1Axis.tickFormat(arguments[0]) }
+    return chart;
+  }
+
+  chart.y2AxisTickFormat = function() {
+    callFunctionOnCharts("y2AxisTickFormat",arguments)
+    if(options.withContext) { contextChart.y1Axis.tickFormat(arguments[0]) }
     return chart;
   }
 

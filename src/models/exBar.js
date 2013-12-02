@@ -79,7 +79,10 @@ var
     var pos = d3.mouse(el);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
 
-    var nyvalue = y.invert(pos[1]-mainMargin.bottom);        
+    var ypos = pos[1]-mainMargin.top
+    if(options.contextAtTheTop) { ypos = ypos-mainMargin.bottom }
+
+    var nyvalue = y.invert(ypos);        
     nyvalue = cursorYValueFormat(nyvalue)
 
     $(g).closest('svg').find(".cursoryText").text(nyvalue)

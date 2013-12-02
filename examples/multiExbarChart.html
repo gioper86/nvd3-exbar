@@ -150,14 +150,17 @@ function drawChart(selector, gdata, options) {
 	//
 	chart = nv.models.exBarMultiChart(options);
 	//
+
+
+	chart.interval(options.interval);
 	chart.stacked(options.stacked);
 	chart.delayed(options.delayed);
-	chart.interval(options.interval);
-
+	
 	//chart.xAxis.ticks(3);
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
 	//chart.forceY([0, 2]);
+	
 	chart.mainChartMargin(options.margin);
 	chart.contextChartMargin(options.contextMargin);
 	//
@@ -206,10 +209,10 @@ function drawChart(selector, gdata, options) {
 		}
 	});
 	//
-	chart.y1Axis.tickFormat(function(d) {
+	chart.y1AxisTickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
-	chart.y2Axis.tickFormat(function(d) {
+	chart.y2AxisTickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
 
@@ -272,7 +275,7 @@ function drawChart(selector, gdata, options) {
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 50, left: 100, top: 30},
+		margin: {bottom: 50, left: 100, top: 60},
 		contextMargin: {left: 100, bottom: 0, top:10},
 //		margin: {bottom: 0, left: 100, top: 0},
 //		contextMargin: {left: 100, bottom: 0, top:0},
@@ -294,7 +297,7 @@ $(document).ready(function() {
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
 		withContext: true,
-		contextAtTheTop: false,
+		contextAtTheTop: true,
 		//incomplete: false,
 		interval: d3.time.month,
 		disContinuedLines: false,
@@ -309,8 +312,9 @@ $(document).ready(function() {
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
+	var gdata2 = generateRandomData(options);
 	//console.log('data-ready ...');
-	drawChart("#chart1", gdata, options)	
+	drawChart("#chart1", [gdata], options)	
 })
 
 lastWeek = function() {

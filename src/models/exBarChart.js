@@ -141,7 +141,7 @@ nv.models.exBarChart = function(options) {
 
   function chart(selection) {
     selection.each(function(data) {
-
+      data = data[chartID] 
       var seriesData = data ? data.series : [];
       //
       chart.update = function(updateDelay) {
@@ -211,21 +211,7 @@ nv.models.exBarChart = function(options) {
       y1 = bars.yScale();
       y2 = lines.yScale();
 
-      var series1 = dataForYAxis
-        .map(function(d) {
-          return d.values.map(function(d,i) {
-            return { x: getX(d,i), y: getY(d,i) }
-          })
-        });
-
-      var series2 = dataForY2Axis
-        .map(function(d) {
-          return d.values.map(function(d,i) {
-            return { x: getX(d,i), y: getY(d,i) }
-          })
-        });
-
-        x.range([0, availableWidth]);        
+      x.range([0, availableWidth]);        
 
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
@@ -763,9 +749,6 @@ nv.models.exBarChart = function(options) {
     if (!arguments.length) return interval;
     interval = _;
     bars.interval(interval);
-    if (typeof bars2 != "undefined") {
-      bars2.interval(interval);
-    }
     return chart;
   };
 
@@ -780,6 +763,25 @@ nv.models.exBarChart = function(options) {
     cursorYValueFormat = _;
     return chart;
   }; 
+
+  chart.xAxisTickFormat = function(_) {
+      if (!arguments.length) return xAxis.tickFormat;
+      xAxis.tickFormat(_)
+      return chart
+  };
+
+  chart.y1AxisTickFormat = function(_) {
+      if (!arguments.length) return y1Axis.tickFormat;
+      y1Axis.tickFormat(_)
+      return chart
+  }; 
+
+  chart.y2AxisTickFormat = function(_) {
+      if (!arguments.length) return y1Axis.tickFormat;
+      y1Axis.tickFormat(_)
+      return chart
+  }; 
+
 
   //============================================================
 

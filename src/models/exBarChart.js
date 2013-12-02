@@ -164,7 +164,7 @@ nv.models.exBarChart = function(options) {
 
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
-          availableHeight1 = (height || parseInt(container.style('height')) || 400)
+          availableHeight1 = ((height || parseInt(container.style('height')) || 400))
                              - margin.top - margin.bottom - contextHeight
 
           chart.availableHeight = availableHeight1
@@ -233,8 +233,6 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
       // Legend
-      console.log("show le:" + showLegend)
-
       if (showLegend) {
         if (timeserie) {
           showStacked = false;
@@ -273,7 +271,6 @@ nv.models.exBarChart = function(options) {
         if (showDelayed) {
           controlsData.push({ key: 'Delayed', title: 'Delayed', disabled: !delayed });
         }
-        console.log(controls.height())
         controls.width(controlWidth()).color(['#444', '#444', '#444']);
         g.select('.nv-controlsWrap')
             .datum(controlsData)
@@ -315,8 +312,9 @@ nv.models.exBarChart = function(options) {
       Translate chart vertically. Useful for the multi-chart implementation
       */
       var translateY = 0
+      var distanceBetweenCharts = 80 //TODO move to options?
       if(options.withContext && options.contextAtTheTop) { 
-        var translateY = contextChart.height()
+        var translateY = contextChart.height() + (chartID*(availableHeight1+distanceBetweenCharts))
       }
 
       container.select('.nv-linePlusBar'+chartID)

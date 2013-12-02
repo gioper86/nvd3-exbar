@@ -253,6 +253,7 @@ function drawChart(selector, gdata, options) {
 	//
 	nv.utils.windowResize(chart.update);
 	//
+	/*
 	chart.bars.dispatch.on('elementClick', function(e) {
 		console.log('elementClick', e);
 		/*
@@ -260,8 +261,8 @@ function drawChart(selector, gdata, options) {
 		xTicks
 		  .selectAll('text')
 		  .attr('transform', function(d,i,j) { return 'translate (-10, 25) rotate(-90 0,0)' }) ;
-		*/
-	});
+		
+	});/*
 	//
 	/*
 	chart.tooltip(function(key, x, y, e, graph) {
@@ -275,7 +276,7 @@ function drawChart(selector, gdata, options) {
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 50, left: 100, top: 60},
+		margin: {bottom: 20, left: 100, top: 60},
 		contextMargin: {left: 100, bottom: 0, top:10},
 //		margin: {bottom: 0, left: 100, top: 0},
 //		contextMargin: {left: 100, bottom: 0, top:0},
@@ -305,16 +306,20 @@ $(document).ready(function() {
 		extendMarks: false,
 		withCursor: true,
 		withHorizontalCursor: true,
-		showHorizontalCursorText: true
+		showHorizontalCursorText: true,
+		numberOfCharts: 2
 
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
-	var gdata2 = generateRandomData(options);
+
+	var options2 = $.extend({}, options, {israndom:true})
+
+	var gdata2 = generateRandomData(options2);
 	//console.log('data-ready ...');
-	drawChart("#chart1", [gdata], options)	
+	drawChart("#chart1", [gdata, gdata2], options)	
 })
 
 lastWeek = function() {

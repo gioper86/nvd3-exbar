@@ -3,8 +3,7 @@ nv.models.exBarMultiChart = function(options) {
     options = {}
   }
 
-  var mainChart = [nv.models.exBarChart(options)]
- 
+  var mainChart = [nv.models.exBarChart(options), nv.models.exBarChart(options)]
   contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
 
   var width, 
@@ -13,14 +12,18 @@ nv.models.exBarMultiChart = function(options) {
   margin = {top: 10, right: 30, bottom: 20, left: 60},
   contextMargin = {top: 10, right: 30, bottom: 5, left: 60},
   delayed
+  
 
   function chart(selection) {
     selection.each(function(data) {	
 
-      
+      var container = d3.select(this)
+      var containerHeight = parseInt(container.style('height'))
+
       $.each(data, function(index, value) {
 
         mainChart[index].chartID(index)
+        mainChart[index].height(containerHeight/data.length)
 
         if(options.withContext) { 
           mainChart[index].contextChart(contextChart)
@@ -29,7 +32,7 @@ nv.models.exBarMultiChart = function(options) {
       })
 
       if(options.withContext) { 
-        contextChart.chartUnderControl(mainChart[0]) 
+        contextChart.chartUnderControl(mainChart) 
         contextChart(selection) 
       }
     });

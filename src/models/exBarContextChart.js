@@ -83,7 +83,10 @@ nv.models.exBarContextChart = function(options) {
 
   function chart(selection) {
     selection.each(function(data) {
-      data = data[0]
+
+      var chartToShowInContext = options.chartToShowInContext ? options.chartToShowInContext : 0
+ 
+      data = data[chartToShowInContext]
       var seriesData = data ? data.series : [];
       //
       chart.update = function(updateDelay) {
@@ -234,10 +237,8 @@ nv.models.exBarContextChart = function(options) {
         .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] : dataFory2Axis);
       
 
-        /*
-        TODO change 500 with the container height
-        */
-      var translateY = 500 + height2
+      var containerHeight=parseInt(container.style('height'))
+      var translateY = containerHeight-height2-20
       if(options.contextAtTheTop) {
         translateY = 0
       }

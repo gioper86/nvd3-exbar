@@ -3,15 +3,15 @@ nv.models.exBarMultiChart = function(options) {
     options = {}
   }
 
-  var mainChart = [nv.models.exBarChart(options), nv.models.exBarChart(options)]
+  var mainChart = [nv.models.exBarChart(options), nv.models.exBarChart(options), nv.models.exBarChart(options)]
   contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
 
-  var width, 
-  height = null,
-  contextHeight = 50,
-  margin = {top: 10, right: 30, bottom: 20, left: 60},
-  contextMargin = {top: 10, right: 30, bottom: 5, left: 60},
-  delayed
+  var width
+  ,height = null
+  ,contextHeight = options.contextHeight ? options.contextHeight : 50
+  ,margin = {top: 10, right: 30, bottom: 20, left: 60}
+  ,contextMargin = {top: 10, right: 30, bottom: 5, left: 60}
+  ,delayed
   
 
   function chart(selection) {
@@ -19,11 +19,12 @@ nv.models.exBarMultiChart = function(options) {
 
       var container = d3.select(this)
       var containerHeight = parseInt(container.style('height'))
+      if(options.withContext) { contextChart.height(contextHeight) }
 
       $.each(data, function(index, value) {
 
         mainChart[index].chartID(index)
-        mainChart[index].height(containerHeight/data.length)
+        mainChart[index].height((containerHeight-contextHeight)/data.length)
 
         if(options.withContext) { 
           mainChart[index].contextChart(contextChart)
@@ -157,19 +158,18 @@ nv.models.exBarMultiChart = function(options) {
 
   chart.tooltip = function() {
     callFunctionOnCharts("tooltip",arguments)
-    
     return chart;
   };
 
   chart.tooltips = function(_) {
     if (!arguments.length) return mainChart.tooltips;
-    mainChart.tooltips = _;
+    callFunctionOnCharts("tooltip",arguments)
     return chart;
   };
 
   chart.tooltipContent = function(_) {
     if (!arguments.length) return mainChart.tooltip;
-    mainChart.tooltip = _;
+    callFunctionOnCharts("tooltip",arguments)
     return chart;
   };
 

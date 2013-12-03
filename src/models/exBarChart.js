@@ -156,6 +156,7 @@ nv.models.exBarChart = function(options) {
       bars.delay(delay);
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
+      bars.contextChart(contextChart)
 
       var container = d3.select(this),
           that = this;
@@ -165,7 +166,7 @@ nv.models.exBarChart = function(options) {
       var availableWidth = (width || parseInt(container.style('width')) || 960)
                              - margin.left - margin.right,
           availableHeight1 = ((height || parseInt(container.style('height')) || 400))
-                             - margin.top - margin.bottom - contextHeight
+                             - margin.top - margin.bottom
 
           chart.availableHeight = availableHeight1
 
@@ -311,10 +312,11 @@ nv.models.exBarChart = function(options) {
       /* 
       Translate chart vertically. Useful for the multi-chart implementation
       */
-      var translateY = 0
-      var distanceBetweenCharts = 80 //TODO move to options?
+      var distanceBetweenCharts = options.distanceBetweenCharts ? options.distanceBetweenCharts : 50
+      var translateY = chartID*(availableHeight1+distanceBetweenCharts)
+       //TODO move to options?
       if(options.withContext && options.contextAtTheTop) { 
-        var translateY = contextChart.height() + (chartID*(availableHeight1+distanceBetweenCharts))
+        translateY += contextChart.height()
       }
 
       container.select('.nv-linePlusBar'+chartID)

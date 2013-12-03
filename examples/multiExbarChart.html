@@ -16,7 +16,7 @@ text {
 }
 
 #chart1 {
-  height: 500px;
+  height: 700px;
   min-width: 200px;
   min-height: 200px;
 /*
@@ -262,22 +262,23 @@ function drawChart(selector, gdata, options) {
 		  .selectAll('text')
 		  .attr('transform', function(d,i,j) { return 'translate (-10, 25) rotate(-90 0,0)' }) ;
 		
-	});/*
-	//
-	/*
+	});
+*/
+
+	
 	chart.tooltip(function(key, x, y, e, graph) {
 		return '<h4>' + key + '</h4>' + '<p>' +  y + ' on ' + x + '</p>'
-		});
-	//
-	*/
+	});
+
+	
 	return chart;
 }
 
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 20, left: 100, top: 60},
-		contextMargin: {left: 100, bottom: 0, top:10},
+		margin: {bottom: 40, left: 100, top: 40},
+		contextMargin: {left: 100, bottom: 0, top:0},
 //		margin: {bottom: 0, left: 100, top: 0},
 //		contextMargin: {left: 100, bottom: 0, top:0},
 		timeserie: true,
@@ -299,6 +300,7 @@ $(document).ready(function() {
 		numberOfLineSeries2: 0,
 		withContext: true,
 		contextAtTheTop: true,
+		chartToShowInContext:0,
 		//incomplete: false,
 		interval: d3.time.month,
 		disContinuedLines: false,
@@ -307,7 +309,8 @@ $(document).ready(function() {
 		withCursor: true,
 		withHorizontalCursor: true,
 		showHorizontalCursorText: true,
-		numberOfCharts: 2
+		distanceBetweenCharts: 60,
+		numberOfCharts: 3
 
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
@@ -315,11 +318,13 @@ $(document).ready(function() {
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
 
-	var options2 = $.extend({}, options, {israndom:true})
+	var options2 = $.extend({}, options, {israndom:true, numberOfBarSeries:4})
 
 	var gdata2 = generateRandomData(options2);
+	var gdata3 = generateRandomData(options2);
+
 	//console.log('data-ready ...');
-	drawChart("#chart1", [gdata, gdata2], options)	
+	drawChart("#chart1", [gdata, gdata2, gdata3], options)	
 })
 
 lastWeek = function() {

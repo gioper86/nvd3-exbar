@@ -32,7 +32,8 @@ nv.models.exBar = function(options) {
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
     , interval = d3.time.day
     , dataMappedByX = {}
-    , cursorYValueFormat = function(nyvalue) { return nyvalue; };
+    , cursorYValueFormat = function(nyvalue) { return nyvalue; }
+    , contextChart
 
 
 var
@@ -80,8 +81,10 @@ var
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
 
     var ypos = pos[1]-mainMargin.top
-    if(options.contextAtTheTop) { ypos = ypos-mainMargin.bottom }
-
+    if(options.withContext && options.contextAtTheTop) { 
+      ypos = ypos-(contextChart.height())
+    }
+    
     var nyvalue = y.invert(ypos);        
     nyvalue = cursorYValueFormat(nyvalue)
 
@@ -1287,10 +1290,13 @@ var
     return chart;
   };
 
-
+  chart.contextChart = function(_) {
+    if (!arguments.length) return contextChart;
+    contextChart = _;
+    return chart;
+  };   
 
   //============================================================
-
 
   return chart;
 }

@@ -156,7 +156,7 @@ nv.models.exBarChart = function(options) {
       bars.delay(delay);
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
-      bars.contextChart(contextChart)
+      bars.chartID(chartID)
 
       var container = d3.select(this),
           that = this;

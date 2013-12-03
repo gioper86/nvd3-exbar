@@ -33,7 +33,7 @@ nv.models.exBar = function(options) {
     , interval = d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
-    , contextChart
+    , chartID
 
 
 var
@@ -76,21 +76,15 @@ var
 
   var xvalue = -1;
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
-    var el = $(g).closest('svg')[0];
+    var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
+    //var el = $(g).closest('svg')[0];
     var pos = d3.mouse(el);
     var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
-
-    var ypos = pos[1]-mainMargin.top
-    if(options.withContext && options.contextAtTheTop) { 
-      ypos = ypos-(contextChart.height())
-    }
-    
+    var ypos = pos[1]
     var nyvalue = y.invert(ypos);        
     nyvalue = cursorYValueFormat(nyvalue)
+    $(d3.select($(g).closest('svg')[0]).select("g.nv-wrap.nv-linePlusBar"+chartID).node()).find(".cursoryText").text(nyvalue)
 
-    $(g).closest('svg').find(".cursoryText").text(nyvalue)
-
-    //var nxvalue = (x.invert(ev.pageX));
     if (nxvalue - xvalue != 0) {
       xvalue = nxvalue;
       //console.log('x.domain, xvalue', x.domain(), xvalue);
@@ -1057,6 +1051,8 @@ var
       y0 = y.copy();
 
       if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
+        
+        //var el = d3.select(d3.select('g.nv-wrap.nv-linePlusBar'+1).node();).select(".overlay").node();
         var c1 = $(this).parent();
         //
         c1.find("g.cursor").remove();
@@ -1290,11 +1286,11 @@ var
     return chart;
   };
 
-  chart.contextChart = function(_) {
-    if (!arguments.length) return contextChart;
-    contextChart = _;
+  chart.chartID = function(_) {
+    if (!arguments.length) return chartID;
+    chartID = _;
     return chart;
-  };   
+  }; 
 
   //============================================================
 

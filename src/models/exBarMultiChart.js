@@ -3,8 +3,13 @@ nv.models.exBarMultiChart = function(options) {
     options = {}
   }
 
-  var mainChart = [nv.models.exBarChart(options), nv.models.exBarChart(options), nv.models.exBarChart(options)]
+  var numberOfCharts = options.numberOfCharts ? options.numberOfCharts : 1
+  var mainChart = []
+  for(var i=0; i<numberOfCharts;i++) { mainChart.push(nv.models.exBarChart(options)) }
+
   contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
+
+
 
   var width
   ,height = null

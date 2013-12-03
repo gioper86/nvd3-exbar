@@ -143,7 +143,7 @@ function checkAndFixTimeSeriesData(gdata, options) {
 
 var chart;
 
-function drawChart(selector, gdata, options) {
+function drawChart(selector, gdata, options, chartID) {
 	console.log('gdata:', gdata);
 	//
 	chart = nv.models.exBarChart(options);
@@ -155,6 +155,8 @@ function drawChart(selector, gdata, options) {
 	chart.interval(options.interval);
 	chart.showStacked(options.showStacked);
 	chart.showDelayed(options.showDelayed);
+	chart.chartID(chartID)
+	//chart.height(height)
 	//chart.xAxis.ticks(3);
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
@@ -163,6 +165,7 @@ function drawChart(selector, gdata, options) {
 	//
 	chart.xAxis.rotateLabels(-30);
 	//
+	
 	chart.x(function(d) {
 		if (options.timeserie) {
 			if (typeof d[0] != "undefined")
@@ -301,8 +304,29 @@ $(document).ready(function() {
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
+	var gdata2 = generateRandomData(options);
 	//console.log('data-ready ...');
-	drawChart("#chart1", gdata, options)	
+	
+	console.log(gdata)
+	drawChart("#chart1", gdata, options,0)
+	drawChart("#chart1", gdata, options,1)	
+
+/*
+	d3.select("#chart1").selectAll(".g").data([gdata]).enter().append("g")
+
+	d3.select("#chart1").selectAll(".g").data([gdata]).enter().append("g")
+
+
+	  var wrap = d3.select("#chart1").selectAll('g.nv-wrap.nv-linePlusBar1').data([gdata]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
+
+
+      wrap = d3.select("#chart1").selectAll('g.nv-wrap.nv-linePlusBar2').data([gdata]);
+      gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
+
+*/
+
+	//d3.select("#chart1").selectAll(".g").data(gdata.series).enter().append("g")
 })
 
 lastWeek = function() {

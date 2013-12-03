@@ -278,7 +278,7 @@ $(document).ready(function() {
 	var options = {
 		//context: true,
 		margin: {bottom: 40, left: 100, top: 40},
-		contextMargin: {left: 100, bottom: 0, top:0},
+		contextMargin: {left: 100, bottom: 5, top:5},
 //		margin: {bottom: 0, left: 100, top: 0},
 //		contextMargin: {left: 100, bottom: 0, top:0},
 		timeserie: true,
@@ -286,7 +286,7 @@ $(document).ready(function() {
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 5,
+		items: 500,
 		showStacked: true,
 		showDelayed: true,
 		showControls: true,
@@ -299,7 +299,7 @@ $(document).ready(function() {
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
 		withContext: true,
-		contextAtTheTop: true,
+		contextAtTheTop: false,
 		chartToShowInContext:0,
 		//incomplete: false,
 		interval: d3.time.month,
@@ -319,7 +319,6 @@ $(document).ready(function() {
 	var gdata = generateRandomData(options);
 
 	var options2 = $.extend({}, options, {israndom:true, numberOfBarSeries:4})
-
 	var gdata2 = generateRandomData(options2);
 	var gdata3 = generateRandomData(options2);
 

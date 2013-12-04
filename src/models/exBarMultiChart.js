@@ -52,7 +52,6 @@ nv.models.exBarMultiChart = function(options) {
           chartInstance[functionName].apply(undefined,args)
         })
       } else {
-        console.log(functionName)
         var index = args[1]
         var args2= args.slice(0,1)
         mainChart[index][functionName].apply(undefined,args2)

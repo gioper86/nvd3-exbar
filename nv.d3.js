@@ -13142,7 +13142,7 @@ var
     var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
     //var el = $(g).closest('svg')[0];
     var pos = d3.mouse(el);
-    var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    var nxvalue = interval.floor(x.invert(pos[0]));
     var ypos = pos[1]
     var nyvalue = y.invert(ypos);        
     nyvalue = cursorYValueFormat(nyvalue)
@@ -14488,6 +14488,7 @@ nv.models.exBarChart = function(options) {
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         yformatted = y;
         //
+        e.chartID = chartID
         e.x = x;
         e.xformatted = xformatted;
         e.y = y;
@@ -15139,8 +15140,8 @@ nv.models.exBarChart = function(options) {
   }; 
 
   chart.y2AxisTickFormat = function(_) {
-      if (!arguments.length) return y1Axis.tickFormat;
-      y1Axis.tickFormat(_)
+      if (!arguments.length) return y2Axis.tickFormat;
+      y2Axis.tickFormat(_)
       return chart
   };
 
@@ -15210,7 +15211,6 @@ nv.models.exBarMultiChart = function(options) {
           chartInstance[functionName].apply(undefined,args)
         })
       } else {
-        console.log(functionName)
         var index = args[1]
         var args2= args.slice(0,1)
         mainChart[index][functionName].apply(undefined,args2)

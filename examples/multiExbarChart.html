@@ -207,35 +207,23 @@ function drawChart(selector, gdata, options) {
 		}
 	});
 	//
+
 	chart.y1AxisTickFormat(function(d) {
-		return d3.format(",.2f")(d);
+		return d3.format(",.3f")(d);
 	});
+
+
 	chart.y2AxisTickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
+
+
 
 	chart.cursorYValueFormat(function(value) {
 		return d3.format(",.2f")(value);
 	})	
 
-	//
-	if (typeof chart.x2Axis != "undefined") {
-		chart.x2Axis.tickFormat(function(d) { 
-			if (options.timeserie) {
-				//return chart.bars2.xScale().tickFormat()(new Date(d));
-				return d3.time.format('%d-%m-%y')(d)
-			} else {
-				return d3.time.format('%d-%m-%y')(d)
-			}
-		});
-		chart.y3Axis.tickFormat(function(d) {
-			return d3.format(",.2f")(d);
-		});
-		chart.y4Axis.tickFormat(function(d) {
-			return d3.format(",.2f")(d);
-		});
-	}
-	//
+
 	
 	// 
 	var t1 = new Date();
@@ -308,7 +296,7 @@ $(document).ready(function() {
 		withHorizontalCursor: true,
 		showHorizontalCursorText: true,
 		distanceBetweenCharts: 60,
-		numberOfCharts: 1
+		numberOfCharts: 2
 
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
@@ -321,7 +309,7 @@ $(document).ready(function() {
 	var gdata3 = generateRandomData(options2);
 	//[gdata, gdata2, gdata3]
 	//console.log('data-ready ...');
-	drawChart("#chart1", [gdata], options)	
+	drawChart("#chart1", [gdata,gdata2], options)	
 })
 
 lastWeek = function() {

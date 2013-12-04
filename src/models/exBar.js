@@ -79,7 +79,7 @@ var
     var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
     //var el = $(g).closest('svg')[0];
     var pos = d3.mouse(el);
-    var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    var nxvalue = interval.floor(x.invert(pos[0]));
     var ypos = pos[1]
     var nyvalue = y.invert(ypos);        
     nyvalue = cursorYValueFormat(nyvalue)

@@ -127,6 +127,7 @@ nv.models.exBarChart = function(options) {
         y = e.value,//(e.series.type == 'bar' ? y1Axis : y2Axis).tickFormat()(lines.y()(e.point, e.pointIndex)),
         yformatted = y;
         //
+        e.chartID = chartID
         e.x = x;
         e.xformatted = xformatted;
         e.y = y;
@@ -778,8 +779,8 @@ nv.models.exBarChart = function(options) {
   }; 
 
   chart.y2AxisTickFormat = function(_) {
-      if (!arguments.length) return y1Axis.tickFormat;
-      y1Axis.tickFormat(_)
+      if (!arguments.length) return y2Axis.tickFormat;
+      y2Axis.tickFormat(_)
       return chart
   };
 

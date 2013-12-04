@@ -9,7 +9,7 @@ nv.models.exBarMultiChart = function(options) {
 
   contextChart = options.withContext ? nv.models.exBarContextChart(options) : null
 
-
+  options.withContext = options.timeserie ? options.withContext : false
 
   var width
   ,height = null
@@ -20,7 +20,7 @@ nv.models.exBarMultiChart = function(options) {
   
 
   function chart(selection) {
-    selection.each(function(data) {	
+    selection.each(function(data) {
 
       var container = d3.select(this)
       var containerHeight = parseInt(container.style('height'))
@@ -255,6 +255,16 @@ nv.models.exBarMultiChart = function(options) {
     if(options.withContext) { contextChart.y1Axis.tickFormat(arguments[0]) }
     return chart;
   }
+
+  chart.getXaxisForChart = function(index)  {
+      return mainChart[index].xAxis
+  }
+
+  chart.setClass = function() {
+    callFunctionOnCharts("getClass",arguments)
+    if(options.withContext) { contextChart.bars.getClass(arguments[0]) }
+    return chart;    
+  } 
 
   //============================================================
 

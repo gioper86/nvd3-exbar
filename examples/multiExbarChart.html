@@ -150,8 +150,6 @@ function drawChart(selector, gdata, options) {
 	//
 	chart = nv.models.exBarMultiChart(options);
 	//
-
-
 	chart.interval(options.interval);
 	chart.stacked(options.stacked);
 	chart.delayed(options.delayed);
@@ -286,7 +284,7 @@ $(document).ready(function() {
 		stacked: true,
 		delayed: true,
 		israndom: false,
-		items: 500,
+		items: 20,
 		showStacked: true,
 		showDelayed: true,
 		showControls: true,
@@ -310,7 +308,7 @@ $(document).ready(function() {
 		withHorizontalCursor: true,
 		showHorizontalCursorText: true,
 		distanceBetweenCharts: 60,
-		numberOfCharts: 3
+		numberOfCharts: 1
 
 		//forceY: [0, 20000]
 		//limitY: [1000, 3000]
@@ -321,9 +319,9 @@ $(document).ready(function() {
 	var options2 = $.extend({}, options, {israndom:true, numberOfBarSeries:4})
 	var gdata2 = generateRandomData(options2);
 	var gdata3 = generateRandomData(options2);
-
+	//[gdata, gdata2, gdata3]
 	//console.log('data-ready ...');
-	drawChart("#chart1", [gdata, gdata2, gdata3], options)	
+	drawChart("#chart1", [gdata], options)	
 })
 
 lastWeek = function() {

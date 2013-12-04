@@ -451,76 +451,73 @@ nv.models.exBarContextChart = function(options) {
 
         $.each(chartUnderControl, function(index, chartToControl) {
 
-        var elem = d3.select("#"+ chartToControl.container.id).select(".nv-linePlusBar"+chartToControl.chartID())
- 
+          var elem = d3.select(".nv-linePlusBar"+chartToControl.chartID())
+  
+          var focusBarsWrap = elem.select('.nv-focus .nv-barsWrap')
+              .datum(!chartToControl.dataForYAxis.length ? [{values:[]}] :
+                chartToControl.dataForYAxis
+                  .map(function(d,i) {
+                    return {
+                      key: d.key,
+                      title: d.title,
+                      elClass: d.elClass,
+                      type: d.type,
+                      color: d.color,
+                      formatOptions: d.formatOptions,
+                      hidden: d.hidden,
+                      disabled: d.disabled,
+                      series: d.series,
+                      values: d.values.filter(function(d,i) {
+                        return chartToControl.bars.x()(d,i) >= extent[0] && chartToControl.bars.x()(d,i) <= extent[1];
+                      })
+                    }
+                  })
+              );
+          
+          var focusLinesWrap = elem.select('.nv-focus .nv-linesWrap')
+              .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] :
+                chartToControl.dataFory2Axis
+                  .map(function(d,i) {
+                    return {
+                      key: d.key,
+                      title: d.title,
+                      elClass: d.elClass,
+                      type: d.type,
+                      color: d.color,
+                      formatOptions: d.formatOptions,
+                      hidden: d.hidden,
+                      disabled: d.disabled,
+                      series: d.series,
+                      values: d.values.filter(function(d,i) {
+                        return chartToControl.lines.x()(d,i) >= extent[0] && chartToControl.lines.x()(d,i) <= extent[1];
+                      })
+                    }
+                  })
+               );
+                   
+          //------------------------------------------------------------
+          
+          
+          //------------------------------------------------------------
+          // Update Main (Focus) X Axis
 
-        var focusBarsWrap = elem.select('.nv-focus .nv-barsWrap')
-            .datum(!chartToControl.dataForYAxis.length ? [{values:[]}] :
-              chartToControl.dataForYAxis
-                .map(function(d,i) {
-                  return {
-                    key: d.key,
-                    title: d.title,
-                    elClass: d.elClass,
-                    type: d.type,
-                    color: d.color,
-                    formatOptions: d.formatOptions,
-                    hidden: d.hidden,
-                    disabled: d.disabled,
-                    series: d.series,
-                    values: d.values.filter(function(d,i) {
-                      return chartToControl.bars.x()(d,i) >= extent[0] && chartToControl.bars.x()(d,i) <= extent[1];
-                    })
-                  }
-                })
-            );
-        
-        var focusLinesWrap = elem.select('.nv-focus .nv-linesWrap')
-            .datum(noLines || dataFory2Axis[0].disabled ? [{values:[]}] :
-              chartToControl.dataFory2Axis
-                .map(function(d,i) {
-                  return {
-                    key: d.key,
-                    title: d.title,
-                    elClass: d.elClass,
-                    type: d.type,
-                    color: d.color,
-                    formatOptions: d.formatOptions,
-                    hidden: d.hidden,
-                    disabled: d.disabled,
-                    series: d.series,
-                    values: d.values.filter(function(d,i) {
-                      return chartToControl.lines.x()(d,i) >= extent[0] && chartToControl.lines.x()(d,i) <= extent[1];
-                    })
-                  }
-                })
-             );
-                 
-        //------------------------------------------------------------
-        
-        
-        //------------------------------------------------------------
-        // Update Main (Focus) X Axis
+          if (chartToControl.dataForYAxis.length) {
+            x = chartToControl.bars.xScale();
+          } else {
+            x = chartToControl.lines.xScale();
+          }
 
-        if (chartToControl.dataForYAxis.length) {
-          x = chartToControl.bars.xScale();
-        } else {
-          x = chartToControl.lines.xScale();
-        }
+          d3.transition(focusBarsWrap).call(chartToControl.bars);
+          d3.transition(focusLinesWrap).call(chartToControl.lines);
 
-        d3.transition(focusBarsWrap).call(chartToControl.bars);
-        d3.transition(focusLinesWrap).call(chartToControl.lines);
+          chartToControl.updateAxis()
 
-        chartToControl.updateAxis()
-
-      })
+        })
                 
       }
 
       //============================================================
        
-      //onBrush();
-
     });
 
     return chart;

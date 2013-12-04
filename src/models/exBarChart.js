@@ -107,6 +107,7 @@ nv.models.exBarChart = function(options) {
             yformatted = y1Axis.tickFormat()(y);
           }
           //
+          e.chartID = chartID
           e.x = x;
           e.xformatted = xformatted;
           e.y = y;
@@ -780,7 +781,13 @@ nv.models.exBarChart = function(options) {
       if (!arguments.length) return y1Axis.tickFormat;
       y1Axis.tickFormat(_)
       return chart
-  }; 
+  };
+
+  chart.getClass = function(_) {
+    if (!arguments.length) return bars.getClass();
+    bars.getClass(_)
+    return chart;
+  };  
 
 
   //============================================================

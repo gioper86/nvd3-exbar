@@ -15418,6 +15418,13 @@ nv.models.exBarMultiChart = function(options) {
       return mainChart[index].xAxis
   }
 
+  chart.rotateXAxisLabels = function(degrees) {
+      $.each(mainChart, function(index, chartInstance) {
+          chartInstance.xAxis.rotateLabels(degrees);
+      });
+      if(options.withContext) { contextChart.xAxis.rotateLabels(degrees) }
+  }
+
   chart.setClass = function() {
     callFunctionOnCharts("getClass",arguments)
     if(options.withContext) { contextChart.bars.getClass(arguments[0]) }

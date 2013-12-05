@@ -223,7 +223,7 @@ function drawChart(selector, gdata, options) {
 		return d3.format(",.2f")(value);
 	})	
 
-
+	chart.rotateXAxisLabels(-30)
 	
 	// 
 	var t1 = new Date();
@@ -263,8 +263,8 @@ function drawChart(selector, gdata, options) {
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 40, left: 100, top: 40},
-		contextMargin: {left: 100, bottom: 5, top:5},
+		margin: {bottom: 50, left: 100, top: 40},
+		contextMargin: {left: 100, bottom: 15, top:5},
 //		margin: {bottom: 0, left: 100, top: 0},
 //		contextMargin: {left: 100, bottom: 0, top:0},
 		timeserie: true,
@@ -287,6 +287,7 @@ $(document).ready(function() {
 		withContext: true,
 		contextAtTheTop: false,
 		chartToShowInContext:0,
+		contextHeight: 70,
 		//incomplete: false,
 		interval: d3.time.month,
 		disContinuedLines: false,

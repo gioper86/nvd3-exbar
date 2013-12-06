@@ -31,6 +31,8 @@ nv.models.exBarMultiChart = function(options) {
         mainChart[index].chartID(index)
         mainChart[index].height((containerHeight-contextHeight)/data.length)
 
+        deselectAllSeriesButTheFirst(index,value) // if options.onlyOneSeriesEnabled == true
+
         if(options.withContext) { 
           mainChart[index].contextChart(contextChart)
         }
@@ -42,6 +44,18 @@ nv.models.exBarMultiChart = function(options) {
         contextChart(selection) 
       }
     });
+  }
+
+  function deselectAllSeriesButTheFirst(index, chartData) {
+      if(typeof options.onlyOneSeriesEnabled !== "undefined" && options.onlyOneSeriesEnabled[index]) {
+        chartData.series.forEach(function(oneSeries, index) {
+          if(index != 0) {
+              oneSeries.disabled = true
+          } else {
+              oneSeries.disabled = false
+          }
+        });
+      }
   }
 
 

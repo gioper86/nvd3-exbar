@@ -224,7 +224,7 @@ function drawChart(selector, gdata, options) {
 	})	
 
 	chart.rotateXAxisLabels(-30)
-	
+
 	// 
 	var t1 = new Date();
 	d3.select(selector)
@@ -251,6 +251,7 @@ function drawChart(selector, gdata, options) {
 	});
 */
 
+
 	
 	chart.tooltip(function(key, x, y, e, graph) {
 		return '<h4>' + key + '</h4>' + '<p>' +  y + ' on ' + x + '</p>'
@@ -265,8 +266,6 @@ $(document).ready(function() {
 		//context: true,
 		margin: {bottom: 50, left: 100, top: 40},
 		contextMargin: {left: 100, bottom: 15, top:5},
-//		margin: {bottom: 0, left: 100, top: 0},
-//		contextMargin: {left: 100, bottom: 0, top:0},
 		timeserie: true,
 		sparse: false,
 		stacked: true,
@@ -289,8 +288,9 @@ $(document).ready(function() {
 		chartToShowInContext:0,
 		contextHeight: 70,
 		//incomplete: false,
-		forceY: [[0, 20000]],
+		//forceY: [null,[0, 20000]], //null if you don't want to force the Y scale for chart i
 		//limitY: [[1000, 3000],[500, 400]],
+		onlyOneSeriesEnabled: [false,true],
 		interval: d3.time.month,
 		disContinuedLines: false,
 		disContinuedAreas: true,

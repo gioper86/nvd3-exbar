@@ -282,9 +282,6 @@ nv.models.exBarChart = function(options) {
     
       }
 
-
-
-
       //------------------------------------------------------------
 
 
@@ -363,15 +360,27 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) { 
-        
-        d.disabled = !d.disabled;
 
-        if (!seriesData.filter(function(d) { return !d.disabled }).length) {
-          seriesData.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
-            return d;
-          });
+        if(typeof options.onlyOneSeriesEnabled !== "undefined" && options.onlyOneSeriesEnabled[chartID]) {
+            if(d.disabled) {
+              seriesData.forEach(function(oneSeries, index) {
+                if(index != i) {
+                      oneSeries.disabled = true
+                }
+              });
+              d.disabled = false
+            }
+        } else {
+    
+            d.disabled = !d.disabled;
+
+            if (!seriesData.filter(function(d) { return !d.disabled }).length) {
+              seriesData.map(function(d) {
+                d.disabled = false;
+                wrap.selectAll('.nv-series').classed('disabled', false);
+                return d;
+              });
+            }
         }
 
         chart.update();

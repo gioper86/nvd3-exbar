@@ -436,7 +436,6 @@ nv.models.exBarContextChart = function(options) {
 
       function onBrush() {
 
-
         //console.log('onBrush ...');
         var bextent = brush.extent();
         brushExtent = brush.empty() ? null : brush.extent();

@@ -289,6 +289,8 @@ $(document).ready(function() {
 		chartToShowInContext:0,
 		contextHeight: 70,
 		//incomplete: false,
+		forceY: [[0, 20000]],
+		//limitY: [[1000, 3000],[500, 400]],
 		interval: d3.time.month,
 		disContinuedLines: false,
 		disContinuedAreas: true,
@@ -297,10 +299,7 @@ $(document).ready(function() {
 		withHorizontalCursor: true,
 		showHorizontalCursorText: true,
 		distanceBetweenCharts: 60,
-		numberOfCharts: 2
-
-		//forceY: [0, 20000]
-		//limitY: [1000, 3000]
+		numberOfCharts: 2,
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);

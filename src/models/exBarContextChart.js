@@ -515,7 +515,7 @@ nv.models.exBarContextChart = function(options) {
                 
       }
 
-      //============================================================
+      onBrush()
        
     });
 

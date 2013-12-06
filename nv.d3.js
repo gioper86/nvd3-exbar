@@ -13140,32 +13140,33 @@ var
   var xvalue = -1;
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
     var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
-    //var el = $(g).closest('svg')[0];
-    var pos = d3.mouse(el);
-    var nxvalue = interval.floor(x.invert(pos[0]));
-    var ypos = pos[1]
-    var nyvalue = y.invert(ypos);        
-    nyvalue = cursorYValueFormat(nyvalue)
-    $(d3.select($(g).closest('svg')[0]).select("g.nv-wrap.nv-linePlusBar"+chartID).node()).find(".cursoryText").text(nyvalue)
+    if(typeof el  !== "undefined" && el != null) {
+      var pos = d3.mouse(el);
+      var nxvalue = interval.floor(x.invert(pos[0]));
+      var ypos = pos[1]
+      var nyvalue = y.invert(ypos);        
+      nyvalue = cursorYValueFormat(nyvalue)
+      $(d3.select($(g).closest('svg')[0]).select("g.nv-wrap.nv-linePlusBar"+chartID).node()).find(".cursoryText").text(nyvalue)
 
-    if (nxvalue - xvalue != 0) {
-      xvalue = nxvalue;
-      //console.log('x.domain, xvalue', x.domain(), xvalue);
-      //console.log('pageX, margin.left', d3.event.pageX, margin.left);
-      dispatch.elementMouseover({
-        isFromArea: true,
-        pos: [d3.event.pageX, d3.event.pageY],
-        series: d,
-        seriesIndex: i,
-        data: data,
-        dataMappedByX: dataMappedByX,
-        point: xvalue,
-        xvalue: xvalue,
-        value: dataMappedByX[xvalue],
-        //pos: getPosBars(d, i, j),
-        //pointIndex: i,
-        e: d3.event
-      })
+      if (nxvalue - xvalue != 0) {
+        xvalue = nxvalue;
+        //console.log('x.domain, xvalue', x.domain(), xvalue);
+        //console.log('pageX, margin.left', d3.event.pageX, margin.left);
+        dispatch.elementMouseover({
+          isFromArea: true,
+          pos: [d3.event.pageX, d3.event.pageY],
+          series: d,
+          seriesIndex: i,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          point: xvalue,
+          xvalue: xvalue,
+          value: dataMappedByX[xvalue],
+          //pos: getPosBars(d, i, j),
+          //pointIndex: i,
+          e: d3.event
+        })
+      }
     }
   }
 
@@ -14039,13 +14040,13 @@ var
         x.rangeBands([0, availableWidth], .1);
       }
 
-      if (typeof options.forceY !== "undefined") {
-        forceY = forceY.concat(options.forceY);
+      if (typeof options.forceY !== "undefined" && typeof options.forceY[chartID] !== "undefined") {
+        forceY = forceY.concat(options.forceY[chartID]);
       }
       var calcYDomain = yDomain || d3.extent(d3.merge(seriesData).map(function(d, i, j) { return d.y + ((stacked && (typeof d.y0 != "undefined")) ? d.y0 : 0) }).concat(forceY))
-      if (typeof options.limitY !== "undefined") {
-        calcYDomain[0] = Math.max(calcYDomain[0], options.limitY[0]);
-        calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[1]);
+      if (typeof options.limitY !== "undefined" && typeof options.limitY[chartID] !== "undefined") {
+        calcYDomain[0] = Math.max(calcYDomain[0], options.limitY[chartID][0]);
+        calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[chartID][1]);
       }
       y.domain(calcYDomain);
       y.range([availableHeight-3, 3]);
@@ -14643,9 +14644,6 @@ nv.models.exBarChart = function(options) {
     
       }
 
-
-
-
       //------------------------------------------------------------
 
 
@@ -14724,15 +14722,27 @@ nv.models.exBarChart = function(options) {
       //------------------------------------------------------------
 
       legend.dispatch.on('legendClick', function(d,i) { 
-        
-        d.disabled = !d.disabled;
 
-        if (!seriesData.filter(function(d) { return !d.disabled }).length) {
-          seriesData.map(function(d) {
-            d.disabled = false;
-            wrap.selectAll('.nv-series').classed('disabled', false);
-            return d;
-          });
+        if(typeof options.onlyOneSeriesEnabled !== "undefined" && options.onlyOneSeriesEnabled[chartID]) {
+            if(d.disabled) {
+              seriesData.forEach(function(oneSeries, index) {
+                if(index != i) {
+                      oneSeries.disabled = true
+                }
+              });
+              d.disabled = false
+            }
+        } else {
+    
+            d.disabled = !d.disabled;
+
+            if (!seriesData.filter(function(d) { return !d.disabled }).length) {
+              seriesData.map(function(d) {
+                d.disabled = false;
+                wrap.selectAll('.nv-series').classed('disabled', false);
+                return d;
+              });
+            }
         }
 
         chart.update();
@@ -14934,12 +14944,14 @@ nv.models.exBarChart = function(options) {
           return d.color || color(d, i);
         }));
 
-        if (dataForYAxis.length) {
-          x = bars.xScale();
-        } else {
-          x = lines.xScale();
+        if(!withContext) {
+          if (dataForYAxis.length) {
+            x = bars.xScale();
+          } else {
+            x = lines.xScale();
+          }
+          initAxis()
         }
-        initAxis()
   
     });
 
@@ -15190,6 +15202,8 @@ nv.models.exBarMultiChart = function(options) {
         mainChart[index].chartID(index)
         mainChart[index].height((containerHeight-contextHeight)/data.length)
 
+        deselectAllSeriesButTheFirst(index,value) // if options.onlyOneSeriesEnabled == true
+
         if(options.withContext) { 
           mainChart[index].contextChart(contextChart)
         }
@@ -15201,6 +15215,18 @@ nv.models.exBarMultiChart = function(options) {
         contextChart(selection) 
       }
     });
+  }
+
+  function deselectAllSeriesButTheFirst(index, chartData) {
+      if(typeof options.onlyOneSeriesEnabled !== "undefined" && options.onlyOneSeriesEnabled[index]) {
+        chartData.series.forEach(function(oneSeries, index) {
+          if(index != 0) {
+              oneSeries.disabled = true
+          } else {
+              oneSeries.disabled = false
+          }
+        });
+      }
   }
 
 
@@ -15873,7 +15899,6 @@ nv.models.exBarContextChart = function(options) {
 
       function onBrush() {
 
-
         //console.log('onBrush ...');
         var bextent = brush.extent();
         brushExtent = brush.empty() ? null : brush.extent();
@@ -15953,7 +15978,7 @@ nv.models.exBarContextChart = function(options) {
                 
       }
 
-      //============================================================
+      onBrush()
        
     });
 

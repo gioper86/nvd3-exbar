@@ -582,12 +582,14 @@ nv.models.exBarChart = function(options) {
           return d.color || color(d, i);
         }));
 
-        if (dataForYAxis.length) {
-          x = bars.xScale();
-        } else {
-          x = lines.xScale();
+        if(!withContext) {
+          if (dataForYAxis.length) {
+            x = bars.xScale();
+          } else {
+            x = lines.xScale();
+          }
+          initAxis()
         }
-        initAxis()
   
     });
 

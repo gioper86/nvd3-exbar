@@ -14074,21 +14074,6 @@ var
 
       //------------------------------------------------------------
 
-
-      var defsEnter = container.append('defs');
-      defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + id)
-        .append('rect');
-      container.select('#nv-edge-clip-' + id + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
-      /*
-      var maxElements = 0;
-      for(var ei=0; ei<seriesData.length; ei+=1) {
-          maxElements = Math.max(seriesData[ei].length, maxElements);
-      }
-      */
-
       // draw bars
       if (timeserie) {
         chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);

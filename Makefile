@@ -36,6 +36,8 @@ JS_FILES = \
 	src/models/stackedAreaChart.js \
 	src/models/exBar.js \
 	src/models/exBarChart.js \
+	src/models/exBarMultiChart.js \
+	src/models/exBarContextChart.js \
 	src/outro.js
 
 JS_COMPILER = \

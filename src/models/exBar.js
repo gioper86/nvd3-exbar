@@ -32,7 +32,8 @@ nv.models.exBar = function(options) {
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
     , interval = d3.time.day
     , dataMappedByX = {}
-    , cursorYValueFormat = function(nyvalue) { return nyvalue; };
+    , cursorYValueFormat = function(nyvalue) { return nyvalue; }
+    , chartID
 
 
 var
@@ -75,35 +76,34 @@ var
 
   var xvalue = -1;
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
-    var el = $(g).closest('svg')[0];
-    var pos = d3.mouse(el);
-    //console.log('d3.event.page', d3.event.pageX, d3.event.pageY, pos);
-    var nxvalue = interval.floor(x.invert(pos[0]-mainMargin.left));
+    var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
+    if(typeof el  !== "undefined" && el != null) {
+      var pos = d3.mouse(el);
+      var nxvalue = interval.floor(x.invert(pos[0]));
+      var ypos = pos[1]
+      var nyvalue = y.invert(ypos);        
+      nyvalue = cursorYValueFormat(nyvalue)
+      $(d3.select($(g).closest('svg')[0]).select("g.nv-wrap.nv-linePlusBar"+chartID).node()).find(".cursoryText").text(nyvalue)
 
-    var nyvalue = y.invert(pos[1]-mainMargin.right);        
-    nyvalue = cursorYValueFormat(nyvalue)
-
-    $(g).closest('svg').find(".cursoryText").text(nyvalue)
-
-    //var nxvalue = (x.invert(ev.pageX));
-    if (nxvalue - xvalue != 0) {
-      xvalue = nxvalue;
-      //console.log('x.domain, xvalue', x.domain(), xvalue);
-      //console.log('pageX, margin.left', d3.event.pageX, margin.left);
-      dispatch.elementMouseover({
-        isFromArea: true,
-        pos: [d3.event.pageX, d3.event.pageY],
-        series: d,
-        seriesIndex: i,
-        data: data,
-        dataMappedByX: dataMappedByX,
-        point: xvalue,
-        xvalue: xvalue,
-        value: dataMappedByX[xvalue],
-        //pos: getPosBars(d, i, j),
-        //pointIndex: i,
-        e: d3.event
-      })
+      if (nxvalue - xvalue != 0) {
+        xvalue = nxvalue;
+        //console.log('x.domain, xvalue', x.domain(), xvalue);
+        //console.log('pageX, margin.left', d3.event.pageX, margin.left);
+        dispatch.elementMouseover({
+          isFromArea: true,
+          pos: [d3.event.pageX, d3.event.pageY],
+          series: d,
+          seriesIndex: i,
+          data: data,
+          dataMappedByX: dataMappedByX,
+          point: xvalue,
+          xvalue: xvalue,
+          value: dataMappedByX[xvalue],
+          //pos: getPosBars(d, i, j),
+          //pointIndex: i,
+          e: d3.event
+        })
+      }
     }
   }
 
@@ -977,13 +977,13 @@ var
         x.rangeBands([0, availableWidth], .1);
       }
 
-      if (typeof options.forceY !== "undefined") {
-        forceY = forceY.concat(options.forceY);
+      if (typeof options.forceY !== "undefined" && typeof options.forceY[chartID] !== "undefined") {
+        forceY = forceY.concat(options.forceY[chartID]);
       }
       var calcYDomain = yDomain || d3.extent(d3.merge(seriesData).map(function(d, i, j) { return d.y + ((stacked && (typeof d.y0 != "undefined")) ? d.y0 : 0) }).concat(forceY))
-      if (typeof options.limitY !== "undefined") {
-        calcYDomain[0] = Math.max(calcYDomain[0], options.limitY[0]);
-        calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[1]);
+      if (typeof options.limitY !== "undefined" && typeof options.limitY[chartID] !== "undefined") {
+        calcYDomain[0] = Math.max(calcYDomain[0], options.limitY[chartID][0]);
+        calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[chartID][1]);
       }
       y.domain(calcYDomain);
       y.range([availableHeight-3, 3]);
@@ -1011,21 +1011,6 @@ var
 
       //------------------------------------------------------------
 
-
-      var defsEnter = container.append('defs');
-      defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + id)
-        .append('rect');
-      container.select('#nv-edge-clip-' + id + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
-      /*
-      var maxElements = 0;
-      for(var ei=0; ei<seriesData.length; ei+=1) {
-          maxElements = Math.max(seriesData[ei].length, maxElements);
-      }
-      */
-
       // draw bars
       if (timeserie) {
         chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);
@@ -1052,6 +1037,8 @@ var
       y0 = y.copy();
 
       if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
+        
+        //var el = d3.select(d3.select('g.nv-wrap.nv-linePlusBar'+1).node();).select(".overlay").node();
         var c1 = $(this).parent();
         //
         c1.find("g.cursor").remove();
@@ -1285,10 +1272,13 @@ var
     return chart;
   };
 
-
+  chart.chartID = function(_) {
+    if (!arguments.length) return chartID;
+    chartID = _;
+    return chart;
+  }; 
 
   //============================================================
-
 
   return chart;
 }

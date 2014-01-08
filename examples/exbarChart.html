@@ -16,7 +16,7 @@ text {
 }
 
 #chart1 {
-  height: 500px;
+  height: 700px;
   min-width: 200px;
   min-height: 200px;
 /*
@@ -51,6 +51,8 @@ text {
 <script src="../src/models/line.js"></script>
 <script src="../src/models/exBar.js"></script>
 <script src="../src/models/exBarChart.js"></script>
+<script src="../src/models/exBarContextChart.js"></script>
+<script src="../src/models/exBarMultiChart.js"></script>
 <script src="stream_layers.js"></script>
 <script type="text/javascript">
 
@@ -106,18 +108,23 @@ function generateRandomData(options) {
 		if (options.sparse) {
 			diff = Math.max(1, Math.random() * 4);
 		}
+		var nullvalue = options.nullvalues && (Math.random() < 0.3);
 		date1 = options.interval.offset(date1, diff);
 		//console.log('date1: ', d3.time.format('%d-%b-%y')(date1));
 		for (var si=0; si<(options.incomplete ? options.seriesBars : gdata.series.length); ++si) {
 			var serie = gdata.series[si];
 			if (typeof serie != "undefined") {
 				var value;
-				if (options.israndom) {
-					value = 200 + Math.random() * ((maxY) - 200);
+				if (nullvalue) {
+					value = null;	
 				} else {
-					value = (maxY * ((di+1) / options.items));
+					if (options.israndom) {
+						value = 200 + Math.random() * ((maxY) - 200);
+					} else {
+						value = (maxY * ((di+1) / options.items));
+					}
 				}
-				serie.values.push([options.interval(date1), value])
+				serie.values.push({x: options.interval(date1), y: value})
 			}
 		}
 	}
@@ -143,61 +150,66 @@ function checkAndFixTimeSeriesData(gdata, options) {
 
 var chart;
 
-function drawChart(selector, gdata, options, chartID) {
+function drawChart(selector, gdata, options) {
 	console.log('gdata:', gdata);
 	//
-	chart = nv.models.exBarChart(options);
+	chart = nv.models.exBarMultiChart(options);
 	//
-	//chart.showControls(false);
-	chart.showLegend(true);
+	chart.interval(options.interval);
 	chart.stacked(options.stacked);
 	chart.delayed(options.delayed);
-	chart.interval(options.interval);
-	chart.showStacked(options.showStacked);
-	chart.showDelayed(options.showDelayed);
-	chart.chartID(chartID)
-	//chart.height(height)
+	
 	//chart.xAxis.ticks(3);
 	//chart.x2Axis.ticks(3);
 	//chart.rotateLabels(-30);
 	//chart.forceY([0, 2]);
-	chart.margin(options.margin);
-	//
-	chart.xAxis.rotateLabels(-30);
-	//
 	
+	chart.mainChartMargin(options.margin);
+	chart.contextChartMargin(options.contextMargin);
+	//
+	//chart.xAxis.rotateLabels(-30);
+	//
 	chart.x(function(d) {
+		//console.log('get x', d);
+		var x = d.x; //d[0];
 		if (options.timeserie) {
-			if (typeof d[0] != "undefined")
-				return options.interval(new Date(d[0]));
+			if (typeof x != "undefined")
+				return options.interval(new Date(x));
 		} else {
-			if (typeof d[0] != "undefined") {
-				return options.interval(new Date(d[0]))
-				//return d[0];
+			if (typeof x != "undefined") {
+				return options.interval(new Date(x))
+				//return x;
 			}
 			if (typeof d.label != "undefined")
 				return d.label;
 		}
-		return 0;
+		return new Date();
 	});
 	chart.y(function(d) {
+		//console.log('get y', d);
+		var y = d.y; //d[1];
+		return y;
+		/*
 		if (options.timeserie) {
-			if (typeof d[1] != "undefined")
-				return d[1];
+			if (typeof y != "undefined")
+				return y;
 		} else {
-			if (typeof d[1] != "undefined") {
-				return d[1];
+			if (typeof y != "undefined") {
+				return y;
 			}
 			if (typeof d.value != "undefined")
 				return d.value;
 		}
 		return 0;
+		*/
 	});
 	//
 	//chart.bars.forceY([0, 600*1000*1000]);
 	//chart.bars.forceY([0, 10000]);
 	//chart.bars2.forceY([0, 10000]);
-	chart.xAxis.tickFormat(function(d) { 
+
+	
+	chart.xAxisTickFormat(function(d) { 
 		if (options.timeserie) {
 			//return chart.bars.xScale().tickFormat()(new Date(d));
 			return d3.time.format('%d-%m-%y')(d)
@@ -207,36 +219,24 @@ function drawChart(selector, gdata, options, chartID) {
 		}
 	});
 	//
-	chart.y1Axis.tickFormat(function(d) {
+
+	chart.y1AxisTickFormat(function(d) {
+		return d3.format(",.3f")(d);
+	});
+
+
+	chart.y2AxisTickFormat(function(d) {
 		return d3.format(",.2f")(d);
 	});
-	chart.y2Axis.tickFormat(function(d) {
-		return d3.format(",.2f")(d);
-	});
+
+
 
 	chart.cursorYValueFormat(function(value) {
 		return d3.format(",.2f")(value);
 	})	
 
-	//
-	if (typeof chart.x2Axis != "undefined") {
-		chart.x2Axis.tickFormat(function(d) { 
-			if (options.timeserie) {
-				//return chart.bars2.xScale().tickFormat()(new Date(d));
-				return d3.time.format('%d-%m-%y')(d)
-			} else {
-				return d3.time.format('%d-%m-%y')(d)
-			}
-		});
-		chart.y3Axis.tickFormat(function(d) {
-			return d3.format(",.2f")(d);
-		});
-		chart.y4Axis.tickFormat(function(d) {
-			return d3.format(",.2f")(d);
-		});
-	}
-	//
-	
+	chart.rotateXAxisLabels(-30)
+
 	// 
 	var t1 = new Date();
 	d3.select(selector)
@@ -251,6 +251,7 @@ function drawChart(selector, gdata, options, chartID) {
 	//
 	nv.utils.windowResize(chart.update);
 	//
+	/*
 	chart.bars.dispatch.on('elementClick', function(e) {
 		console.log('elementClick', e);
 		/*
@@ -258,75 +259,81 @@ function drawChart(selector, gdata, options, chartID) {
 		xTicks
 		  .selectAll('text')
 		  .attr('transform', function(d,i,j) { return 'translate (-10, 25) rotate(-90 0,0)' }) ;
-		*/
+		
 	});
-	//
-	/*
+*/
+
+
+	
 	chart.tooltip(function(key, x, y, e, graph) {
 		return '<h4>' + key + '</h4>' + '<p>' +  y + ' on ' + x + '</p>'
-		});
-	//
-	*/
+	});
+
+	
 	return chart;
 }
 
 $(document).ready(function() {
 	var options = {
 		//context: true,
-		margin: {bottom: 50, left: 100},
+		margin: {bottom: 50, left: 100, top: 40},
+		contextMargin: {left: 100, bottom: 15, top:5},
 		timeserie: true,
 		sparse: false,
+		nullvalues: true,
 		stacked: true,
 		delayed: true,
-		israndom: false,
+		israndom: true,
 		items: 5,
 		showStacked: true,
-		showDelayed: false,
+		showDelayed: true,
 		showControls: true,
+		showLegend: true,
 		numberOfAreaSeries: 0,
-		numberOfBarSeries: 2,
-		numberOfMarkSeries: 1,
+		numberOfBarSeries: 1,
+		numberOfMarkSeries: 0,
 		numberOfLineSeries: 0,
 		numberOfBarSeries2: 0,
 		numberOfMarkSeries2: 0,
 		numberOfLineSeries2: 0,
-		withContext: false,
+		withContext: true,
+		contextAtTheTop: false,
+		chartToShowInContext:0,
+		contextHeight: 70,
 		//incomplete: false,
-		interval: d3.time.month,
+		//forceY: [null,[0, 20000]], //null if you don't want to force the Y scale for chart i
+		//limitY: [[1000, 3000],[500, 400]],
+		onlyOneSeriesEnabled: [false,true],
+		interval: d3.time.day,
 		disContinuedLines: false,
-		disContinuedAreas: true,
+		disContinuedAreas: false,
 		extendMarks: false,
 		withCursor: true,
 		withHorizontalCursor: true,
-		showHorizontalCursorText: true
-		//forceY: [0, 20000]
-		//limitY: [1000, 3000]
+		showHorizontalCursorText: true,
+		distanceBetweenCharts: 60,
+		numberOfCharts: 1,
 	}
 	//gdata = checkAndFixTimeSeriesData(gdata, istimeserie);
 	var gdata = generateRandomData(options);
-	var gdata2 = generateRandomData(options);
+
+	var options2 = $.extend({}, options, {israndom:true, numberOfBarSeries:4})
+	var gdata2 = generateRandomData(options2);
+	var gdata3 = generateRandomData(options2);
+	//[gdata, gdata2, gdata3]
 	//console.log('data-ready ...');
-	
-	console.log(gdata)
-	drawChart("#chart1", gdata, options,0)
-	drawChart("#chart1", gdata, options,1)	
 
-/*
-	d3.select("#chart1").selectAll(".g").data([gdata]).enter().append("g")
+	var url = "http://localhost:8080/portal2/rest/api/1.0/chartData?currency=$&filter.devices=336&filter.from=1364774400000&filter.sites=10&filter.to=1367366400000&granularity=daily&groupBy=time&metric=variance&timezone=UTC";
+	$.ajax({
+		type: 'GET',
+		url: url
+	}).done(function(result) {
+		//gdata = result.result[0];
+		//gdata.series[0].type='bar';
+		console.log('ajax-gdata', gdata);
+		drawChart("#chart1", [gdata /*,gdata2*/], options)	
+	});
 
-	d3.select("#chart1").selectAll(".g").data([gdata]).enter().append("g")
-
-
-	  var wrap = d3.select("#chart1").selectAll('g.nv-wrap.nv-linePlusBar1').data([gdata]);
-      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
-
-
-      wrap = d3.select("#chart1").selectAll('g.nv-wrap.nv-linePlusBar2').data([gdata]);
-      gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
-
-*/
-
-	//d3.select("#chart1").selectAll(".g").data(gdata.series).enter().append("g")
 })
 
 lastWeek = function() {
@@ -371,8 +378,7 @@ lastYear = function(years) {
 	</div>
 
 	<div id="chart-container" width="100%" style="padding: 10px 25px 10px 25px;">
-		<svg id="chart1">
-		</svg>
+		<svg id="chart1"></svg>
  	</div>
 
 </body>

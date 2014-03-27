@@ -1011,6 +1011,15 @@ var
 
       //------------------------------------------------------------
 
+      var defsEnter = container.select('defs');
+      defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + id)
+        .append('rect');
+      container.select('#nv-edge-clip-' + id + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
+
+
       // draw bars
       if (timeserie) {
         chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, [], false);

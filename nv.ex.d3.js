@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.1a';
+nv.version = '0.0.2';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14073,6 +14073,15 @@ var
       y0 = y0 || y;
 
       //------------------------------------------------------------
+
+      var defsEnter = container.select('defs');
+      defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + id)
+        .append('rect');
+      container.select('#nv-edge-clip-' + id + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
+
 
       // draw bars
       if (timeserie) {

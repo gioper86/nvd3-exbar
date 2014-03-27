@@ -780,6 +780,18 @@ var
 
     wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+
+    defsEnter.append('clipPath')
+        .attr('id', 'nv-edge-clip-' + id)
+      .append('rect');
+
+    wrap.select('#nv-edge-clip-' + id + ' rect')
+        .attr('width', availableWidth)
+        .attr('height', availableHeight);
+
+    g .attr('clip-path', clipEdge ? 'url(#nv-edge-clip-' + id + ')' : '');
+
+
     var groups = wrap.select('.nv-groups').selectAll('.nv-group')
       .data(function(d) { return d }, function(d) { return d.key });
     groups.enter().append('g')
@@ -1010,14 +1022,6 @@ var
       y0 = y0 || y;
 
       //------------------------------------------------------------
-
-      var defsEnter = container.select('defs');
-      defsEnter.append('clipPath')
-        .attr('id', 'nv-edge-clip-' + id)
-        .append('rect');
-      container.select('#nv-edge-clip-' + id + ' rect')
-        .attr('width', availableWidth)
-        .attr('height', availableHeight);
 
 
       // draw bars

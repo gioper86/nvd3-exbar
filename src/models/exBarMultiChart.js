@@ -200,7 +200,7 @@ nv.models.exBarMultiChart = function(options) {
 
   chart.brushExtent = function(_) {
     if (!arguments.length) return contextChart.brushExtent;
-    contextChart.brushExtent = _;
+    contextChart.brushExtent(_);
     return chart;
   };
 

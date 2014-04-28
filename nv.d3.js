@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.2';
+nv.version = '0.0.3';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -15369,7 +15369,7 @@ nv.models.exBarMultiChart = function(options) {
 
   chart.brushExtent = function(_) {
     if (!arguments.length) return contextChart.brushExtent;
-    contextChart.brushExtent = _;
+    contextChart.brushExtent(_);
     return chart;
   };
 

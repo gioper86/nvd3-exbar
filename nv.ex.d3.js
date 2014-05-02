@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.3';
+nv.version = '0.0.4';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -13073,7 +13073,8 @@ nv.models.exBar = function(options) {
     , width = 960
     , height = 500
     , timeserie = options.timeserie
-    , x = timeserie ? d3.time.scale() : d3.scale.ordinal()
+    , utc = options.utc
+    , x = timeserie ? (utc ? d3.time.scale.utc() : d3.time.scale()) : d3.scale.ordinal()
     , y = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function(d){ return d.x }
@@ -13093,7 +13094,7 @@ nv.models.exBar = function(options) {
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
-    , interval = d3.time.day
+    , interval = utc ? d3.time.day.utc: d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
     , chartID
@@ -14384,7 +14385,7 @@ nv.models.exBarChart = function(options) {
     , reduceXTicks = false // if false a tick will show for every data point
     , staggerLabels = false
     , rotateLabels = 0
-    , interval = d3.time.day
+    , interval = options.utc ? d3.time.day.utc : d3.time.day
     , controls = nv.models.legend()
     , showLegend = (typeof options.showLegend === "undefined") ? true : options.showLegend
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
@@ -14411,7 +14412,7 @@ nv.models.exBarChart = function(options) {
     , extent
     , brushExtent = null
     , tooltips = true
-    , dateFomatter = d3.time.format('%d-%b-%y')
+    , dateFomatter = options.utc ? d3.time.format.utc('%d-%b-%y') : d3.time.format('%d-%b-%y')
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
         if (timeserie) {
@@ -15485,7 +15486,7 @@ nv.models.exBarContextChart = function(options) {
     , reduceXTicks = false // if false a tick will show for every data point
     , staggerLabels = false
     , rotateLabels = 0
-    , interval = d3.time.day
+    , interval = options.utc ? d3.time.day.utc : d3.time.day
     , controls = nv.models.legend()
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
@@ -15505,7 +15506,7 @@ nv.models.exBarContextChart = function(options) {
     , extent
     , brushExtent = null
     , tooltips = true
-    , dateFomatter = d3.time.format('%d-%b-%y')
+    , dateFomatter = options.utc ? d3.time.format.utc('%d-%b-%y') : d3.time.format('%d-%b-%y')
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
         if (timeserie) {

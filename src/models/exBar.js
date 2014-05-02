@@ -10,7 +10,8 @@ nv.models.exBar = function(options) {
     , width = 960
     , height = 500
     , timeserie = options.timeserie
-    , x = timeserie ? d3.time.scale() : d3.scale.ordinal()
+    , utc = options.utc
+    , x = timeserie ? (utc ? d3.time.scale.utc() : d3.time.scale()) : d3.scale.ordinal()
     , y = d3.scale.linear()
     , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
     , getX = function(d){ return d.x }
@@ -30,7 +31,7 @@ nv.models.exBar = function(options) {
     , xDomain
     , yDomain
     , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'areaClick', 'areaMouseover', 'areaMouseout')
-    , interval = d3.time.day
+    , interval = utc ? d3.time.day.utc: d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
     , chartID

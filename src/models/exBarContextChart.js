@@ -24,7 +24,7 @@ nv.models.exBarContextChart = function(options) {
     , reduceXTicks = false // if false a tick will show for every data point
     , staggerLabels = false
     , rotateLabels = 0
-    , interval = d3.time.day
+    , interval = options.utc ? d3.time.day.utc : d3.time.day
     , controls = nv.models.legend()
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
@@ -44,7 +44,7 @@ nv.models.exBarContextChart = function(options) {
     , extent
     , brushExtent = null
     , tooltips = true
-    , dateFomatter = d3.time.format('%d-%b-%y')
+    , dateFomatter = options.utc ? d3.time.format.utc('%d-%b-%y') : d3.time.format('%d-%b-%y')
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
         if (timeserie) {

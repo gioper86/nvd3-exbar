@@ -217,8 +217,6 @@ function drawChart(selector, gdata, options) {
 		return d3.format(",.2f")(d);
 	});
 
-
-
 	chart.cursorYValueFormat(function(value) {
 		return d3.format(",.2f")(value);
 	})	
@@ -266,6 +264,7 @@ $(document).ready(function() {
 		//context: true,
 		margin: {bottom: 50, left: 100, top: 40},
 		contextMargin: {left: 100, bottom: 15, top:5},
+		//chartsHeight: [350,150],
 		timeserie: true,
 		sparse: false,
 		stacked: true,

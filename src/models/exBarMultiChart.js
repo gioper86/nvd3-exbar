@@ -27,9 +27,13 @@ nv.models.exBarMultiChart = function(options) {
       if(options.withContext) { contextChart.height(contextHeight) }
 
       $.each(data, function(index, value) {
-
         mainChart[index].chartID(index)
-        mainChart[index].height((containerHeight-contextHeight)/data.length)
+       
+        if(options.chartsHeight) {
+          mainChart[index].height(options.chartsHeight[index])
+        } else {
+          mainChart[index].height((containerHeight-contextHeight)/data.length)
+        }
 
         deselectAllSeriesButTheFirst(index,value) // if options.onlyOneSeriesEnabled == true
 

@@ -138,6 +138,17 @@ nv.models.exBarChart = function(options) {
         }
   };
 
+  function calculateChartYPosition(availableHeight1, distanceBetweenCharts) {
+      if(options.chartsHeight) {
+        var sumOfpreviousCharts = 0
+        for(var i=0; i < chartID;i++) {
+          sumOfpreviousCharts += options.chartsHeight[i]
+        }
+        return sumOfpreviousCharts+distanceBetweenCharts
+      } 
+      return chartID*(availableHeight1+distanceBetweenCharts)
+  }
+
   //------------------------------------------------------------
 
   function chart(selection) {
@@ -235,10 +246,8 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
       // Legend
-
-
       var showLegend = (typeof options.showLegend == "undefined") ? true : options.showLegend[chartID]
-      
+
       if (showLegend) {
         if (timeserie) {
           showStacked = false;
@@ -315,7 +324,7 @@ nv.models.exBarChart = function(options) {
       Translate chart vertically. Useful for the multi-chart implementation
       */
       var distanceBetweenCharts = options.distanceBetweenCharts ? options.distanceBetweenCharts : 50
-      var translateY = chartID*(availableHeight1+distanceBetweenCharts)
+      var translateY = calculateChartYPosition(availableHeight1, distanceBetweenCharts)
        //TODO move to options?
       if(options.withContext && options.contextAtTheTop) { 
         translateY += contextChart.height()

@@ -26,7 +26,6 @@ nv.models.exBarChart = function(options) {
     , rotateLabels = 0
     , interval = options.utc ? d3.time.day.utc : d3.time.day
     , controls = nv.models.legend()
-    , showLegend = (typeof options.showLegend === "undefined") ? true : options.showLegend
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
@@ -236,6 +235,10 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
       // Legend
+
+
+      var showLegend = (typeof options.showLegend == "undefined") ? true : options.showLegend[chartID]
+      
       if (showLegend) {
         if (timeserie) {
           showStacked = false;

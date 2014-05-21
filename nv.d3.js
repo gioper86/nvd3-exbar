@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.6';
+nv.version = '0.0.7';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14505,7 +14505,7 @@ nv.models.exBarChart = function(options) {
         for(var i=0; i < chartID;i++) {
           sumOfpreviousCharts += options.chartsHeight[i]
         }
-        return sumOfpreviousCharts+distanceBetweenCharts
+        return sumOfpreviousCharts+chartID*distanceBetweenCharts
       } 
       return chartID*(availableHeight1+distanceBetweenCharts)
   }
@@ -14848,9 +14848,9 @@ nv.models.exBarChart = function(options) {
         g.select('.nv-focus .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + /*y1.range()[0]*/availableHeight1 + ')');
 
-        var hideXaxisTicks = (typeof options.hideXaxisTicks === "undefined") ? false : options.hideXaxisTicks[chartID]
+        var hideXaxis = (typeof options.hideXaxis === "undefined") ? false : options.hideXaxis[chartID]
 
-        if(!hideXaxisTicks) {
+        if(!hideXaxis) {
           d3.transition(g.select('.nv-x.nv-axis'))
             .call(xAxis)
         }
@@ -14903,6 +14903,7 @@ nv.models.exBarChart = function(options) {
         // Setup and Update Main (Focus) Y Axes
         
 
+
         y1Axis
           .scale(y1)
           .ticks( availableHeight1 / 36 )
@@ -14921,10 +14922,14 @@ nv.models.exBarChart = function(options) {
           .style('opacity', dataForY2Axis.length ? 1 : 0)
           .attr('transform', 'translate(' + x.range()[1] + ',0)');
 
-        d3.transition(g.select('.nv-focus .nv-y1.nv-axis'))
-            .call(y1Axis);
-        d3.transition(g.select('.nv-focus .nv-y2.nv-axis'))
-            .call(y2Axis);
+        var hideYaxis = (typeof options.hideYaxis === "undefined") ? false : options.hideYaxis[chartID]
+
+        if(!hideYaxis) {
+          d3.transition(g.select('.nv-focus .nv-y1.nv-axis'))
+              .call(y1Axis);
+          d3.transition(g.select('.nv-focus .nv-y2.nv-axis'))
+              .call(y2Axis);
+        }
 
       }
 

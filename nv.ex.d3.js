@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.5';
+nv.version = '0.0.6';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14387,7 +14387,6 @@ nv.models.exBarChart = function(options) {
     , rotateLabels = 0
     , interval = options.utc ? d3.time.day.utc : d3.time.day
     , controls = nv.models.legend()
-    , showLegend = (typeof options.showLegend === "undefined") ? true : options.showLegend
     , showControls = (typeof options.showControls === "undefined") ? true : options.showControls
     , showDelayed = (typeof options.showDelayed === "undefined") ? true : options.showDelayed
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
@@ -14500,6 +14499,17 @@ nv.models.exBarChart = function(options) {
         }
   };
 
+  function calculateChartYPosition(availableHeight1, distanceBetweenCharts) {
+      if(options.chartsHeight) {
+        var sumOfpreviousCharts = 0
+        for(var i=0; i < chartID;i++) {
+          sumOfpreviousCharts += options.chartsHeight[i]
+        }
+        return sumOfpreviousCharts+distanceBetweenCharts
+      } 
+      return chartID*(availableHeight1+distanceBetweenCharts)
+  }
+
   //------------------------------------------------------------
 
   function chart(selection) {
@@ -14597,6 +14607,8 @@ nv.models.exBarChart = function(options) {
 
       //------------------------------------------------------------
       // Legend
+      var showLegend = (typeof options.showLegend == "undefined") ? true : options.showLegend[chartID]
+
       if (showLegend) {
         if (timeserie) {
           showStacked = false;
@@ -14673,7 +14685,7 @@ nv.models.exBarChart = function(options) {
       Translate chart vertically. Useful for the multi-chart implementation
       */
       var distanceBetweenCharts = options.distanceBetweenCharts ? options.distanceBetweenCharts : 50
-      var translateY = chartID*(availableHeight1+distanceBetweenCharts)
+      var translateY = calculateChartYPosition(availableHeight1, distanceBetweenCharts)
        //TODO move to options?
       if(options.withContext && options.contextAtTheTop) { 
         translateY += contextChart.height()
@@ -14832,25 +14844,16 @@ nv.models.exBarChart = function(options) {
             });
           });
         }
-        /*
-        xAxis
-          .tickFormat(bars.xScale().tickFormat());
-        */
-        //console.log('x.domain before: : ', x.domain());
-        //console.log('extent', extent);
-        if (timeserie) {
-          //xAxis.domain([extent[0], extent[1]]);
-        } else {
-          //xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
-          //xAxis.domain([extent[0], extent[1]]);
-        }
-        //console.log('x.domain after: : ', x.domain());
 
         g.select('.nv-focus .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + /*y1.range()[0]*/availableHeight1 + ')');
 
-        d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        var hideXaxisTicks = (typeof options.hideXaxisTicks === "undefined") ? false : options.hideXaxisTicks[chartID]
+
+        if(!hideXaxisTicks) {
+          d3.transition(g.select('.nv-x.nv-axis'))
+            .call(xAxis)
+        }
 
         var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
 

@@ -483,25 +483,16 @@ nv.models.exBarChart = function(options) {
             });
           });
         }
-        /*
-        xAxis
-          .tickFormat(bars.xScale().tickFormat());
-        */
-        //console.log('x.domain before: : ', x.domain());
-        //console.log('extent', extent);
-        if (timeserie) {
-          //xAxis.domain([extent[0], extent[1]]);
-        } else {
-          //xAxis.domain([Math.ceil(extent[0]), Math.floor(extent[1])]);
-          //xAxis.domain([extent[0], extent[1]]);
-        }
-        //console.log('x.domain after: : ', x.domain());
 
         g.select('.nv-focus .nv-x.nv-axis')
           .attr('transform', 'translate(0,' + /*y1.range()[0]*/availableHeight1 + ')');
 
-        d3.transition(g.select('.nv-x.nv-axis'))
-          .call(xAxis);
+        var hideXaxisTicks = (typeof options.hideXaxisTicks === "undefined") ? false : options.hideXaxisTicks[chartID]
+
+        if(!hideXaxisTicks) {
+          d3.transition(g.select('.nv-x.nv-axis'))
+            .call(xAxis)
+        }
 
         var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
 

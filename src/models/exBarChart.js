@@ -49,7 +49,7 @@ nv.models.exBarChart = function(options) {
     , color = nv.utils.defaultColor()
     , extent
     , brushExtent = null
-    , tooltips = true
+    , tooltips = true 
     , dateFomatter = options.utc ? d3.time.format.utc('%d-%b-%y') : d3.time.format('%d-%b-%y')
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
@@ -424,6 +424,8 @@ nv.models.exBarChart = function(options) {
         dispatch.stateChange(state);
         chart.update();
       });
+
+      tooltips = (typeof options.showTooltip === "undefined") ? true : options.showTooltip[chartID]
 
       dispatch.on('tooltipShow', function(e) {
         dispatch.tooltipHide(e);

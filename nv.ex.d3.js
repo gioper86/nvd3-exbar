@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.7';
+nv.version = '0.0.8';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14113,7 +14113,11 @@ var
       x0 = x.copy();
       y0 = y.copy();
 
-      if (timeserie && (options.withCursor || options.withHorizontalCursor)) {
+      var withCursor = (typeof options.withCursor === "undefined") ? false : options.withCursor[chartID]
+      var withHorizontalCursor = (typeof options.withHorizontalCursor === "undefined") ? false : options.withHorizontalCursor[chartID]
+      var showHorizontalCursorText = (typeof options.showHorizontalCursorText === "undefined") ? false : options.showHorizontalCursorText[chartID]
+
+      if (timeserie && (withCursor || withHorizontalCursor)) {
         
         //var el = d3.select(d3.select('g.nv-wrap.nv-linePlusBar'+1).node();).select(".overlay").node();
         var c1 = $(this).parent();
@@ -14132,7 +14136,7 @@ var
           .attr("class", "cursor cursory")
           .style("display", "none"); 
 
-        if(options.withCursor) {      
+        if(withCursor) {      
             cursorx.append("line")
               .attr("class", "focus-line")
               .attr("x1", 0)
@@ -14141,7 +14145,7 @@ var
               .attr("y2", availableHeight-2);
         } 
 
-        if(options.withHorizontalCursor) { 
+        if(withHorizontalCursor) { 
           cursory.append("line")
             .attr("class", "focus-line")
             .attr("x1", 1)
@@ -14149,7 +14153,7 @@ var
             .attr("y1", 0)
             .attr("y2", 0);
 
-            if(options.showHorizontalCursorText) {
+            if(showHorizontalCursorText) {
               cursory.append("text")
               .attr("dx",5)
               .attr("dy",-5)
@@ -14410,7 +14414,7 @@ nv.models.exBarChart = function(options) {
     , color = nv.utils.defaultColor()
     , extent
     , brushExtent = null
-    , tooltips = true
+    , tooltips = true 
     , dateFomatter = options.utc ? d3.time.format.utc('%d-%b-%y') : d3.time.format('%d-%b-%y')
     , tooltip = function(key, x, y, e, graph) {
         var xstr;
@@ -14785,6 +14789,8 @@ nv.models.exBarChart = function(options) {
         dispatch.stateChange(state);
         chart.update();
       });
+
+      tooltips = (typeof options.showTooltip === "undefined") ? true : options.showTooltip[chartID]
 
       dispatch.on('tooltipShow', function(e) {
         dispatch.tooltipHide(e);

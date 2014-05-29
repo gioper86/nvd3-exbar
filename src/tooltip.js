@@ -8,7 +8,7 @@
 
   var nvtooltip = window.nv.tooltip = {};
 
-  nvtooltip.show = function(pos, content, gravity, dist, parentContainer, classes) {
+  nvtooltip.show = function(pos, content, gravity, dist, parentContainer, classes, options) {
 
     var container = document.createElement('div');
         container.className = 'nvtooltip ' + (classes ? classes : 'xy-tooltip');
@@ -60,6 +60,20 @@
         return offsetLeft;
     }
 
+    var tooltipOpacity = 1
+    var tooltipLeftOffset = 0
+    var tooltipRightOffset = 0
+
+    if (typeof options !== "undefined") {
+        if(typeof options.tooltipOpacity !== "undefined")
+            tooltipOpacity = options.tooltipOpacity
+
+        if(options.timeserie) {
+            tooltipLeftOffset = 100
+            tooltipRightOffset = 270
+        }
+    } 
+
     switch (gravity) {
       case 'e':
         left = pos[0] - width - dist;
@@ -87,12 +101,12 @@
         if (tTop + height > scrollTop + windowHeight) top = scrollTop + windowHeight - tTop + top - height;
         break;
       case 's':
-        left = pos[0] - (width / 2);
+        left = pos[0] - (width / 2) + tooltipLeftOffset;
         top = pos[1] - height - dist;
         var tLeft = tooltipLeft(container);
         var tTop = tooltipTop(container);
         if (tLeft < scrollLeft) left = scrollLeft + 5;
-        if (tLeft + width > windowWidth) left = left - width/2 + 5;
+        if (tLeft + width> windowWidth) left = left - width/2 - tooltipRightOffset;
         if (scrollTop > tTop) top = scrollTop;
         break;
     }
@@ -104,7 +118,7 @@
         container.style.left = left+'px';
     }
     container.style.top = top+'px';
-    container.style.opacity = 1;
+    container.style.opacity = tooltipOpacity;
     container.style.position = 'absolute'; //fix scroll bar issue
     container.style.pointerEvents = 'none'; //fix scroll bar issue
 

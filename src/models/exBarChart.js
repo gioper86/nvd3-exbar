@@ -113,9 +113,9 @@ nv.models.exBarChart = function(options) {
           e.yformatted = yformatted;
           //
           var serieKey = (typeof e.series !== "undefined") ? e.series.key : "undefined";
-          content = tooltip(serieKey, xformatted, yformatted, e, chart);
+          content = tooltip(serieKey, xformatted, yformatted, e, chart, options);
           if (typeof content !== "undefined") { 
-            nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+            nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement, null, options);
           }
           return;
     }
@@ -132,9 +132,9 @@ nv.models.exBarChart = function(options) {
         e.y = y;
         e.yformatted = yformatted;
         //
-        content = tooltip(e.series.key, x, y, e, chart);
+        content = tooltip(e.series.key, x, y, e, chart, options);
         if (typeof content !== "undefined") { 
-          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+          nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement, null, options);
         }
   };
 

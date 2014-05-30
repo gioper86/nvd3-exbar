@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.9';
+nv.version = '0.0.10';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -468,6 +468,9 @@ nv.models.axis = function() {
       switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+          if(scale.range().length < 2) {
+            return
+          }
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('text-anchor', 'middle')
@@ -516,6 +519,9 @@ nv.models.axis = function() {
               .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+          if(scale.range().length < 2) {
+            return
+          }
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')
@@ -14922,8 +14928,6 @@ nv.models.exBarChart = function(options) {
         //------------------------------------------------------------
         // Setup and Update Main (Focus) Y Axes
         
-
-
         y1Axis
           .scale(y1)
           .ticks( availableHeight1 / 36 )
@@ -14940,7 +14944,7 @@ nv.models.exBarChart = function(options) {
 
         g.select('.nv-focus .nv-y2.nv-axis')
           .style('opacity', dataForY2Axis.length ? 1 : 0)
-          .attr('transform', 'translate(' + x.range()[1] + ',0)');
+          .attr('transform', 'translate(' + x.range()[0] + ',0)');        
 
         var hideYaxis = (typeof options.hideYaxis === "undefined") ? false : options.hideYaxis[chartID]
 

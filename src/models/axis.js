@@ -80,6 +80,9 @@ nv.models.axis = function() {
       switch (axis.orient()) {
         case 'top':
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+          if(scale.range().length < 2) {
+            return
+          }
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('text-anchor', 'middle')
@@ -128,6 +131,9 @@ nv.models.axis = function() {
               .attr('text-anchor', rotateLabels%360 > 0 ? 'start' : 'end');
           }
           axisLabel.enter().append('text').attr('class', 'nv-axislabel');
+          if(scale.range().length < 2) {
+            return
+          }
           var w = (scale.range().length==2) ? scale.range()[1] : (scale.range()[scale.range().length-1]+(scale.range()[1]-scale.range()[0]));
           axisLabel
               .attr('text-anchor', rotateLabels ? (rotateLabels%360 > 0 ? 'start' : 'end') : 'middle')

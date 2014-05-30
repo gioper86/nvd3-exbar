@@ -543,8 +543,6 @@ nv.models.exBarChart = function(options) {
         //------------------------------------------------------------
         // Setup and Update Main (Focus) Y Axes
         
-
-
         y1Axis
           .scale(y1)
           .ticks( availableHeight1 / 36 )
@@ -561,7 +559,7 @@ nv.models.exBarChart = function(options) {
 
         g.select('.nv-focus .nv-y2.nv-axis')
           .style('opacity', dataForY2Axis.length ? 1 : 0)
-          .attr('transform', 'translate(' + x.range()[1] + ',0)');
+          .attr('transform', 'translate(' + x.range()[0] + ',0)');        
 
         var hideYaxis = (typeof options.hideYaxis === "undefined") ? false : options.hideYaxis[chartID]
 

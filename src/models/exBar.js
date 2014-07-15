@@ -77,7 +77,6 @@ var
 
   var xvalue = -1;
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
-    console.log("chartsID", chartID)
 
     var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
     if(typeof el  !== "undefined" && el != null) {

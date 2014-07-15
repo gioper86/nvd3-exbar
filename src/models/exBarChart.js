@@ -3,8 +3,7 @@ nv.models.exBarChart = function(options) {
   if (typeof options == "undefined") {
     options = {}
   }
-  options.isContext = true
-  
+
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------

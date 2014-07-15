@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.10';
+nv.version = '0.0.11';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14137,7 +14137,7 @@ var
       var withHorizontalCursor = (typeof options.withHorizontalCursor === "undefined") ? false : options.withHorizontalCursor[chartID]
       var showHorizontalCursorText = (typeof options.showHorizontalCursorText === "undefined") ? false : options.showHorizontalCursorText[chartID]
 
-      if (timeserie && (withCursor || withHorizontalCursor)) {
+      if (timeserie) {
         
         //var el = d3.select(d3.select('g.nv-wrap.nv-linePlusBar'+1).node();).select(".overlay").node();
         var c1 = $(this).parent();

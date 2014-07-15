@@ -77,6 +77,8 @@ var
 
   var xvalue = -1;
   var mouseLocationChangedOnArea = function(d, i, g, data, dataMappedByX) {
+    console.log("chartsID", chartID)
+
     var el = d3.select('g.nv-wrap.nv-linePlusBar'+chartID).select(".overlay").node();
     if(typeof el  !== "undefined" && el != null) {
       var pos = d3.mouse(el);
@@ -1054,8 +1056,9 @@ var
       var withHorizontalCursor = (typeof options.withHorizontalCursor === "undefined") ? false : options.withHorizontalCursor[chartID]
       var showHorizontalCursorText = (typeof options.showHorizontalCursorText === "undefined") ? false : options.showHorizontalCursorText[chartID]
 
-      if (timeserie) {
-        
+      //chartID is undefined for the context chart
+      if (timeserie && !(typeof chartID === "undefined")) {
+
         //var el = d3.select(d3.select('g.nv-wrap.nv-linePlusBar'+1).node();).select(".overlay").node();
         var c1 = $(this).parent();
         //

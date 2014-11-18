@@ -31,6 +31,7 @@ nv.models.exBarChart = function(options) {
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     , cursorYValueFormat = function(value) { return value }
+    , y1AxisTickFormat
     , chartID = 0
     , dataForYAxis
     , dataForY2Axis
@@ -168,6 +169,7 @@ nv.models.exBarChart = function(options) {
       bars.delay(delay);
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
+      bars.y1AxisTickFormat(y1AxisTickFormat)
       bars.chartID(chartID)
 
       var container = d3.select(this),
@@ -793,6 +795,7 @@ nv.models.exBarChart = function(options) {
 
   chart.y1AxisTickFormat = function(_) {
       if (!arguments.length) return y1Axis.tickFormat;
+      y1AxisTickFormat = _
       y1Axis.tickFormat(_)
       return chart
   }; 

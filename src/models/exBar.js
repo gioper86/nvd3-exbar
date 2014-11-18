@@ -34,6 +34,7 @@ nv.models.exBar = function(options) {
     , interval = utc ? d3.time.day.utc: d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
+    , y1AxisTickFormat
     , chartID
 
 
@@ -279,12 +280,15 @@ var
         .delay(function(d,i) { return i * delayPerItem })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
-          .remove();
+          .remove()
     } else {
       groups.exit()
         .selectAll('rect.nv-bar')
-        .remove();
+        .remove()
     }
+
+    groups.selectAll('text.nv-bar').remove();          
+
 
     groups
       .attr('class', function(d,i) { 
@@ -297,7 +301,25 @@ var
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1/*.75*/);
 
+    /* VALUES LABELS ON BARS */
+    var textElements = groups.selectAll('text.nv-bar')
+       .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
+    textElements.exit().remove();
+
+    var textElementsEnter = textElements.enter().append('text')
+      .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+      .attr('text-anchor', 'middle')
+      .attr('transform', function(d,i,j) { 
+        return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
+      }) 
+      .attr('x', x.rangeBand() * .9 / 2)
+      .attr('y', function(d,i) { return y(getY(d,i)) -4 })
+      .text(function(d,i) { return y1AxisTickFormat(d[1]) });
+
+      /* */
+
+  
     var bars = groups.selectAll('rect.nv-bar')
       .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
@@ -1214,6 +1236,7 @@ var
     return chart;
   };
 
+
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
@@ -1291,6 +1314,12 @@ var
     cursorYValueFormat = _;
     return chart;
   };
+
+  chart.y1AxisTickFormat = function(_) {
+      if (!arguments.length) return y1AxisTickFormat;
+      y1AxisTickFormat = _
+      return chart
+  };   
 
   chart.chartID = function(_) {
     if (!arguments.length) return chartID;

@@ -36,6 +36,7 @@ nv.models.exBar = function(options) {
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
     , y1AxisTickFormat
     , chartID
+    , showValuesOnBars = (typeof options.showValuesOnBars === "undefined") ? false : options.showValuesOnBars
 
 
 var
@@ -235,8 +236,18 @@ var
 
   }
 
+  function numberOfBarSeries(dataBars) {
+    var count = 0;
+    dataBars.forEach(function(series, index) {
+        if(series.type === "bar") {
+          count++
+        }
+    }); 
+    return count
+  }
+
   function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed) {
-    //console.log('dataBars', dataBars);
+    console.log('dataBars', dataBars);
 
     //
     dataBars.forEach(function(serie, serieVisIndex) {
@@ -301,24 +312,25 @@ var
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1/*.75*/);
 
-    /* VALUES LABELS ON BARS */
-    var textElements = groups.selectAll('text.nv-bar')
-       .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
+    if(!timeserie && numberOfBarSeries(dataBars) == 1 && showValuesOnBars) {
+      /* VALUES LABELS ON BARS */
+      var textElements = groups.selectAll('text.nv-bar')
+         .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
-    textElements.exit().remove();
+      textElements.exit().remove();
 
-    var textElementsEnter = textElements.enter().append('text')
-      .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
-      .attr('text-anchor', 'middle')
-      .attr('transform', function(d,i,j) { 
-        return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
-      }) 
-      .attr('x', x.rangeBand() * .9 / 2)
-      .attr('y', function(d,i) { return y(getY(d,i)) -4 })
-      .text(function(d,i) { return y1AxisTickFormat(d[1]) });
+      var textElementsEnter = textElements.enter().append('text')
+        .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+        .attr('text-anchor', 'middle')
+        .attr('transform', function(d,i,j) { 
+          return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
+        }) 
+        .attr('x', x.rangeBand() * .9 / 2)
+        .attr('y', function(d,i) { return y(getY(d,i)) -4 })
+        .text(function(d,i) { return y1AxisTickFormat(d[1]) });
 
-      /* */
-
+        /* */
+    }
   
     var bars = groups.selectAll('rect.nv-bar')
       .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });

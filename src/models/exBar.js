@@ -247,7 +247,7 @@ var
   }
 
   function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed) {
-    console.log('dataBars', dataBars);
+    //console.log('dataBars', dataBars);
 
     //
     dataBars.forEach(function(serie, serieVisIndex) {
@@ -312,8 +312,9 @@ var
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1/*.75*/);
 
+    // SHOW VALUES ON BARS
     if(!timeserie && numberOfBarSeries(dataBars) == 1 && showValuesOnBars) {
-      /* VALUES LABELS ON BARS */
+      
       var textElements = groups.selectAll('text.nv-bar')
          .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
@@ -326,10 +327,13 @@ var
           return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
         }) 
         .attr('x', x.rangeBand() * .9 / 2)
-        .attr('y', function(d,i) { return y(getY(d,i)) -4 })
+        .attr('y', function(d,i) { 
+          console.log("D", getY(d,i))
+          if(getY(d,i) < 0)
+            return y(getY(d,i)) + 16
+          return y(getY(d,i)) -4 
+        })
         .text(function(d,i) { return y1AxisTickFormat(d[1]) });
-
-        /* */
     }
   
     var bars = groups.selectAll('rect.nv-bar')
@@ -1034,7 +1038,13 @@ var
         calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[chartID][1]);
       }
       y.domain(calcYDomain);
-      y.range([availableHeight-3, 3]);
+
+      // If showValuesOnBars, pad the Y axis range to account for label height
+      if(!timeserie && numberOfBarSeries(dataBars) == 1 && showValuesOnBars)  {
+        y.range([availableHeight - (y.domain()[0] < 0 ? 20 : 0), y.domain()[1] > 0 ? 20 : 0]);
+      }
+      else 
+        y.range([availableHeight-3, 3]);
 
       //console.log('domain.y', y.domain());
       //console.log('x.domain()', x.domain());

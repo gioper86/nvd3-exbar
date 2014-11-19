@@ -273,6 +273,11 @@ nv.models.exBarMultiChart = function(options) {
     return chart;
   }
 
+  chart.valuesOnBarsFormat = function() {
+    callFunctionOnCharts("valuesOnBarsFormat",arguments)
+    return chart;
+  }  
+
   chart.getXaxisForChart = function(index)  {
       return mainChart[index].xAxis
   }

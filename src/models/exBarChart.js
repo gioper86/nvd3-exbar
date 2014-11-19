@@ -32,6 +32,7 @@ nv.models.exBarChart = function(options) {
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     , cursorYValueFormat = function(value) { return value }
     , y1AxisTickFormat
+    , valuesOnBarsFormat = function(nyvalue) { return nyvalue; }
     , chartID = 0
     , dataForYAxis
     , dataForY2Axis
@@ -170,6 +171,7 @@ nv.models.exBarChart = function(options) {
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
       bars.y1AxisTickFormat(y1AxisTickFormat)
+      bars.valuesOnBarsFormat(valuesOnBarsFormat)
       bars.chartID(chartID)
 
       var container = d3.select(this),
@@ -805,6 +807,11 @@ nv.models.exBarChart = function(options) {
       y2Axis.tickFormat(_)
       return chart
   };
+
+  chart.valuesOnBarsFormat = function(_) {
+    valuesOnBarsFormat = _
+    return chart;
+  }    
 
   chart.getClass = function(_) {
     if (!arguments.length) return bars.getClass();

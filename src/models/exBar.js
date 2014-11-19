@@ -34,7 +34,7 @@ nv.models.exBar = function(options) {
     , interval = utc ? d3.time.day.utc: d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
-    , y1AxisTickFormat
+    , valuesOnBarsFormat
     , chartID
     , showValuesOnBars = (typeof options.showValuesOnBars === "undefined") ? false : options.showValuesOnBars
 
@@ -328,12 +328,11 @@ var
         }) 
         .attr('x', x.rangeBand() * .9 / 2)
         .attr('y', function(d,i) { 
-          console.log("D", getY(d,i))
           if(getY(d,i) < 0)
             return y(getY(d,i)) + 16
           return y(getY(d,i)) -4 
         })
-        .text(function(d,i) { return y1AxisTickFormat(d[1]) });
+        .text(function(d,i) { return valuesOnBarsFormat( getY(d,i) ) });
     }
   
     var bars = groups.selectAll('rect.nv-bar')
@@ -1342,6 +1341,13 @@ var
       y1AxisTickFormat = _
       return chart
   };   
+
+  chart.valuesOnBarsFormat = function(_) {
+    if (!arguments.length) return valuesOnBarsFormat;
+    valuesOnBarsFormat = _
+    return chart;
+  }    
+
 
   chart.chartID = function(_) {
     if (!arguments.length) return chartID;

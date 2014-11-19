@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.13';
+nv.version = '0.0.14';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -13117,7 +13117,9 @@ nv.models.exBar = function(options) {
     , interval = utc ? d3.time.day.utc: d3.time.day
     , dataMappedByX = {}
     , cursorYValueFormat = function(nyvalue) { return nyvalue; }
+    , valuesOnBarsFormat
     , chartID
+    , showValuesOnBars = (typeof options.showValuesOnBars === "undefined") ? false : options.showValuesOnBars
 
 
 var
@@ -13317,6 +13319,16 @@ var
 
   }
 
+  function numberOfBarSeries(dataBars) {
+    var count = 0;
+    dataBars.forEach(function(series, index) {
+        if(series.type === "bar") {
+          count++
+        }
+    }); 
+    return count
+  }
+
   function chartBars(container, availableWidth, availableHeight, bandWidth, barWidth, data, dataBars, delayed) {
     //console.log('dataBars', dataBars);
 
@@ -13362,12 +13374,15 @@ var
         .delay(function(d,i) { return i * delayPerItem })
           .attr('y', function(d) { return stacked ? y0(d.y0) : y0(0) })
           .attr('height', 0)
-          .remove();
+          .remove()
     } else {
       groups.exit()
         .selectAll('rect.nv-bar')
-        .remove();
+        .remove()
     }
+
+    groups.selectAll('text.nv-bar').remove();          
+
 
     groups
       .attr('class', function(d,i) { 
@@ -13380,7 +13395,29 @@ var
       .style('stroke-opacity', 1)
       .style('fill-opacity', 1/*.75*/);
 
+    // SHOW VALUES ON BARS
+    if(!timeserie && numberOfBarSeries(dataBars) == 1 && showValuesOnBars) {
+      
+      var textElements = groups.selectAll('text.nv-bar')
+         .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
+      textElements.exit().remove();
+
+      var textElementsEnter = textElements.enter().append('text')
+        .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive' })
+        .attr('text-anchor', 'middle')
+        .attr('transform', function(d,i,j) { 
+          return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
+        }) 
+        .attr('x', x.rangeBand() * .9 / 2)
+        .attr('y', function(d,i) { 
+          if(getY(d,i) < 0)
+            return y(getY(d,i)) + 16
+          return y(getY(d,i)) -4 
+        })
+        .text(function(d,i) { return valuesOnBarsFormat( getY(d,i) ) });
+    }
+  
     var bars = groups.selectAll('rect.nv-bar')
       .data(function(d) { return (hideable && !dataBars.length) ? hideable.values : d.values });
 
@@ -14083,7 +14120,13 @@ var
         calcYDomain[1] = Math.min(calcYDomain[1], options.limitY[chartID][1]);
       }
       y.domain(calcYDomain);
-      y.range([availableHeight-3, 3]);
+
+      // If showValuesOnBars, pad the Y axis range to account for label height
+      if(!timeserie && numberOfBarSeries(dataBars) == 1 && showValuesOnBars)  {
+        y.range([availableHeight - (y.domain()[0] < 0 ? 20 : 0), y.domain()[1] > 0 ? 20 : 0]);
+      }
+      else 
+        y.range([availableHeight-3, 3]);
 
       //console.log('domain.y', y.domain());
       //console.log('x.domain()', x.domain());
@@ -14297,6 +14340,7 @@ var
     return chart;
   };
 
+
   chart.forceY = function(_) {
     if (!arguments.length) return forceY;
     forceY = _;
@@ -14375,6 +14419,19 @@ var
     return chart;
   };
 
+  chart.y1AxisTickFormat = function(_) {
+      if (!arguments.length) return y1AxisTickFormat;
+      y1AxisTickFormat = _
+      return chart
+  };   
+
+  chart.valuesOnBarsFormat = function(_) {
+    if (!arguments.length) return valuesOnBarsFormat;
+    valuesOnBarsFormat = _
+    return chart;
+  }    
+
+
   chart.chartID = function(_) {
     if (!arguments.length) return chartID;
     chartID = _;
@@ -14418,6 +14475,8 @@ nv.models.exBarChart = function(options) {
     , showStacked = (typeof options.showStacked === "undefined") ? true : options.showStacked
     , controlWidth = function() { return showControls ? (90 * 2) : 0 }
     , cursorYValueFormat = function(value) { return value }
+    , y1AxisTickFormat
+    , valuesOnBarsFormat = function(nyvalue) { return nyvalue; }
     , chartID = 0
     , dataForYAxis
     , dataForY2Axis
@@ -14555,6 +14614,8 @@ nv.models.exBarChart = function(options) {
       bars.delay(delay);
       bars.drawTime(drawTime);
       bars.cursorYValueFormat(cursorYValueFormat);
+      bars.y1AxisTickFormat(y1AxisTickFormat)
+      bars.valuesOnBarsFormat(valuesOnBarsFormat)
       bars.chartID(chartID)
 
       var container = d3.select(this),
@@ -15180,6 +15241,7 @@ nv.models.exBarChart = function(options) {
 
   chart.y1AxisTickFormat = function(_) {
       if (!arguments.length) return y1Axis.tickFormat;
+      y1AxisTickFormat = _
       y1Axis.tickFormat(_)
       return chart
   }; 
@@ -15189,6 +15251,11 @@ nv.models.exBarChart = function(options) {
       y2Axis.tickFormat(_)
       return chart
   };
+
+  chart.valuesOnBarsFormat = function(_) {
+    valuesOnBarsFormat = _
+    return chart;
+  }    
 
   chart.getClass = function(_) {
     if (!arguments.length) return bars.getClass();
@@ -15476,6 +15543,11 @@ nv.models.exBarMultiChart = function(options) {
     if(options.withContext) { contextChart.y1Axis.tickFormat(arguments[0]) }
     return chart;
   }
+
+  chart.valuesOnBarsFormat = function() {
+    callFunctionOnCharts("valuesOnBarsFormat",arguments)
+    return chart;
+  }  
 
   chart.getXaxisForChart = function(index)  {
       return mainChart[index].xAxis

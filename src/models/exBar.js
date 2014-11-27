@@ -443,7 +443,13 @@ var
       });
     
     bars
-      .attr('class', function(d,i) { return getY(d,i) < 0 ? 'nv-bar negative' : 'nv-bar positive'; })
+      .attr('class', function(d,i) { 
+          var valueClass = "" 
+          if(typeof d.vClass !== "undefined") {
+            valueClass = d.vClass
+          }
+          return getY(d,i) < 0 ? 'nv-bar negative ' + valueClass  : 'nv-bar positive ' + valueClass        
+      })
       .attr('transform', function(d,i,j) { 
         return 'translate(' + getXPos(getX(d,i), bandWidth) + ',0)'; 
       })

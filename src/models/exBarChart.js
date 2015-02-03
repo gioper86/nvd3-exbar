@@ -631,6 +631,14 @@ nv.models.exBarChart = function(options) {
     dispatch.tooltipHide(e);
   });
 
+  bars.dispatch.on('elementClick', function(e) {
+    if(e.point.newTab){
+      window.open(e.point.url);
+    } else {
+      window.location.href = e.point.url;
+    }
+  });
+
   dispatch.on('tooltipHide', function() {
     if (tooltips) nv.tooltip.cleanup();
   });

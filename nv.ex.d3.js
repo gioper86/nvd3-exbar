@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.15';
+nv.version = '0.0.16';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -15079,6 +15079,14 @@ nv.models.exBarChart = function(options) {
 
   bars.dispatch.on('elementMouseout.tooltip', function(e) {
     dispatch.tooltipHide(e);
+  });
+
+  bars.dispatch.on('elementClick', function(e) {
+    if(e.point.newTab){
+      window.open(e.point.url);
+    } else {
+      window.location.href = e.point.url;
+    }
   });
 
   dispatch.on('tooltipHide', function() {

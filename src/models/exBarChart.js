@@ -632,10 +632,12 @@ nv.models.exBarChart = function(options) {
   });
 
   bars.dispatch.on('elementClick', function(e) {
-    if(e.point.newTab){
-      window.open(e.point.url);
-    } else {
-      window.location.href = e.point.url;
+    if(typeof e.point.url != 'undefined') {
+      if(e.point.newTab){
+        window.open(e.point.url);
+      } else {
+        window.location.href = e.point.url;
+      }
     }
   });
 

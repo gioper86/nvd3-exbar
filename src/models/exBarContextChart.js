@@ -173,8 +173,9 @@ nv.models.exBarContextChart = function(options) {
       var wrap = container.selectAll('g.nv-wrap.nv-linePlusBar').data([data]);
       var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-linePlusBar').append('g');
       var g = wrap.select('g');
-      
+
       var contextEnter = gEnter.append('g').attr('class', 'nv-context');
+      contextEnter.append('text').text("Zoom:").attr('y', 15).attr('x', -45);
       contextEnter.append('g').attr('class', 'nv-x nv-axis');
       contextEnter.append('g').attr('class', 'nv-y1 nv-axis');
       contextEnter.append('g').attr('class', 'nv-y2 nv-axis');

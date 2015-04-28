@@ -41,6 +41,7 @@ nv.models.exBarMultiChart = function(options) {
           mainChart[index].contextChart(contextChart)
         }
         mainChart[index](selection)
+
       })
 
       if(options.withContext) { 
@@ -254,6 +255,11 @@ nv.models.exBarMultiChart = function(options) {
     if(options.withContext) { contextChart.cursorYValueFormat(arguments[0]); }
     return chart;
   }; 
+
+  chart.onLegendClick = function(_) {
+    callFunctionOnCharts("onLegendClick",arguments)
+    return chart;
+  };  
 
   chart.xAxisTickFormat = function() {
     callFunctionOnCharts("xAxisTickFormat",arguments)

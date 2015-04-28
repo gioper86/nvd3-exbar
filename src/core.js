@@ -1,7 +1,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.18';
+nv.version = '0.0.19';
 nv.dev = true //set false when in production
 
 window.nv = nv;

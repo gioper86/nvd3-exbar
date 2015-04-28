@@ -219,7 +219,11 @@ function drawChart(selector, gdata, options) {
 
 	chart.cursorYValueFormat(function(value) {
 		return d3.format(",.2f")(value);
-	})	
+	})
+
+	chart.onLegendClick(function(d,i) {
+		console.log("on lengend click from outside"
+)	})
 
 	chart.rotateXAxisLabels(-30)
 

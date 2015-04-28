@@ -39,6 +39,7 @@ nv.models.exBarChart = function(options) {
     , updateAxis
     , availableHeight
     , contextChart
+    , onLegendClick = function(d,i) {}
 
 
 
@@ -189,7 +190,6 @@ nv.models.exBarChart = function(options) {
       if (availableWidth < 10 || availableHeight1 < 10) {
         return;
       }
-
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -398,6 +398,8 @@ nv.models.exBarChart = function(options) {
               });
             }
         }
+
+        onLegendClick(d,i)
 
         chart.update();
         if(withContext) {
@@ -796,6 +798,12 @@ nv.models.exBarChart = function(options) {
    chart.cursorYValueFormat = function(_) {
     if (!arguments.length) return cursorYValueFormat;
     cursorYValueFormat = _;
+    return chart;
+  }; 
+
+  chart.onLegendClick = function(_) {
+    if (!arguments.length) return onLegendClick;
+    onLegendClick = _;
     return chart;
   }; 
 

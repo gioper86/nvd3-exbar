@@ -2,7 +2,7 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.18';
+nv.version = '0.0.19';
 nv.dev = true //set false when in production
 
 window.nv = nv;
@@ -14489,6 +14489,7 @@ nv.models.exBarChart = function(options) {
     , updateAxis
     , availableHeight
     , contextChart
+    , onLegendClick = function(d,i) {}
 
 
 
@@ -14639,7 +14640,6 @@ nv.models.exBarChart = function(options) {
       if (availableWidth < 10 || availableHeight1 < 10) {
         return;
       }
-
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
@@ -14848,6 +14848,8 @@ nv.models.exBarChart = function(options) {
               });
             }
         }
+
+        onLegendClick(d,i)
 
         chart.update();
         if(withContext) {
@@ -15249,6 +15251,12 @@ nv.models.exBarChart = function(options) {
     return chart;
   }; 
 
+  chart.onLegendClick = function(_) {
+    if (!arguments.length) return onLegendClick;
+    onLegendClick = _;
+    return chart;
+  }; 
+
   chart.xAxisTickFormat = function(_) {
       if (!arguments.length) return xAxis.tickFormat;
       xAxis.tickFormat(_)
@@ -15328,6 +15336,7 @@ nv.models.exBarMultiChart = function(options) {
           mainChart[index].contextChart(contextChart)
         }
         mainChart[index](selection)
+
       })
 
       if(options.withContext) { 
@@ -15541,6 +15550,11 @@ nv.models.exBarMultiChart = function(options) {
     if(options.withContext) { contextChart.cursorYValueFormat(arguments[0]); }
     return chart;
   }; 
+
+  chart.onLegendClick = function(_) {
+    callFunctionOnCharts("onLegendClick",arguments)
+    return chart;
+  };  
 
   chart.xAxisTickFormat = function() {
     callFunctionOnCharts("xAxisTickFormat",arguments)
